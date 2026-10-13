@@ -1,0 +1,184 @@
+/* 应用布局样式（App / Home / Editor） */
+
+.im-topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--im-z-sticky);
+  display: flex;
+  align-items: center;
+  gap: var(--im-space-5);
+  height: var(--im-header-h);
+  padding: 0 var(--im-space-5);
+  background: var(--im-color-bg-elevated);
+  border-bottom: 1px solid var(--im-color-line);
+}
+.im-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--im-space-2);
+  color: var(--im-color-ink);
+  text-decoration: none;
+}
+.im-logo__mark {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--im-radius-md);
+  background: var(--im-color-ink);
+  color: var(--im-color-paper);
+  font-family: var(--im-font-kai);
+  font-size: 20px;
+}
+.im-logo__name {
+  font-family: var(--im-font-serif);
+  font-weight: 600;
+  font-size: var(--im-fs-lg);
+}
+.im-topnav {
+  display: flex;
+  gap: var(--im-space-2);
+}
+.im-topnav__link {
+  padding: var(--im-space-2) var(--im-space-3);
+  border-radius: var(--im-radius-md);
+  color: var(--im-color-ink-soft);
+  font-size: var(--im-fs-sm);
+  text-decoration: none;
+}
+.im-topnav__link:hover {
+  background: var(--im-color-surface-hover);
+  text-decoration: none;
+}
+.im-topnav__link.is-active {
+  background: var(--im-color-surface);
+  color: var(--im-color-ink);
+  font-weight: 600;
+}
+
+/* 首页网格 */
+.im-home__hero {
+  padding: var(--im-space-6) 0;
+}
+.im-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--im-space-4);
+}
+@media (max-width: 860px) {
+  .im-grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 编辑器三栏 */
+.im-editor__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--im-space-3);
+  padding-bottom: var(--im-space-4);
+  margin-bottom: var(--im-space-4);
+  border-bottom: 1px solid var(--im-color-line);
+}
+.im-editor__grid {
+  display: grid;
+  grid-template-columns: 320px 1fr 300px;
+  gap: var(--im-space-4);
+  align-items: start;
+}
+@media (max-width: 1080px) {
+  .im-editor__grid {
+    grid-template-columns: 1fr;
+  }
+}
+.im-editor__pane {
+  background: var(--im-color-surface);
+  border: 1px solid var(--im-color-line);
+  border-radius: var(--im-radius-lg);
+  padding: var(--im-space-4);
+}
+.im-textarea {
+  width: 100%;
+  min-height: 320px;
+  resize: vertical;
+  font-family: var(--im-font-serif);
+  font-size: var(--im-fs-lg);
+  line-height: var(--im-lh-base);
+  color: var(--im-color-ink);
+  background: var(--im-color-bg);
+  border: 1px solid var(--im-color-line-strong);
+  border-radius: var(--im-radius-md);
+  padding: var(--im-space-3);
+}
+.im-textarea:focus {
+  outline: none;
+  border-color: var(--im-color-gold);
+}
+.im-editor__preview {
+  min-height: 480px;
+  display: flex;
+  flex-direction: column;
+}
+.im-preview-ph {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--im-space-2);
+  border: 1px dashed var(--im-color-line-strong);
+  border-radius: var(--im-radius-md);
+  color: var(--im-color-ink-faint);
+  background: repeating-linear-gradient(
+    45deg,
+    var(--im-color-paper-deep),
+    var(--im-color-paper-deep) 12px,
+    var(--im-color-paper) 12px,
+    var(--im-color-paper) 24px
+  );
+}
+
+/* 实时预览画布 */
+.im-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--im-space-3);
+}
+.im-preview__stage {
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+  border-radius: var(--im-radius-md);
+  overflow: hidden;
+  box-shadow: var(--im-shadow-md);
+  background: var(--im-color-paper);
+}
+.im-preview__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.im-preview__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--im-space-3);
+}
+.im-preview__bar {
+  flex: 1;
+  height: 8px;
+  background: var(--im-color-line);
+  border-radius: var(--im-radius-pill);
+  overflow: hidden;
+}
+.im-preview__fill {
+  height: 100%;
+  background: var(--im-color-vermilion);
+  transition: width var(--im-dur-fast) linear;
+}
+.im-preview__pct {
+  font-size: var(--im-fs-xs);
+  color: var(--im-color-ink-faint);
+  font-variant-numeric: tabular-nums;
+  min-width: 34px;
+  text-align: right;
+}

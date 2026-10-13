@@ -1,0 +1,108 @@
+/* 全局基础样式 + 无障碍基线（IM-UI-001 §10） */
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--im-font-sans);
+  font-size: var(--im-fs-md);
+  line-height: var(--im-lh-base);
+  color: var(--im-color-ink);
+  background: var(--im-color-bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--im-font-serif);
+  font-weight: 600;
+  line-height: var(--im-lh-tight);
+  margin: 0 0 var(--im-space-3);
+  color: var(--im-color-ink);
+}
+
+a {
+  color: var(--im-color-vermilion);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* 可见焦点环：键盘可达性（WCAG 2.4.7） */
+:focus-visible {
+  outline: 2px solid var(--im-color-gold);
+  outline-offset: 2px;
+  border-radius: var(--im-radius-sm);
+}
+
+/* 供屏幕阅读器 */
+.im-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 跳转主内容链接：默认隐藏，聚焦时可见（WCAG 2.4.1） */
+.im-skip-link {
+  position: absolute;
+  left: var(--im-space-3);
+  top: -60px;
+  z-index: var(--im-z-toast);
+  background: var(--im-color-ink);
+  color: var(--im-color-paper);
+  padding: var(--im-space-2) var(--im-space-4);
+  border-radius: var(--im-radius-md);
+  transition: top var(--im-dur-fast) var(--im-ease);
+}
+.im-skip-link:focus {
+  top: var(--im-space-3);
+  text-decoration: none;
+}
+
+.im-app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.im-main {
+  flex: 1;
+  width: 100%;
+  max-width: var(--im-content-max);
+  margin: 0 auto;
+  padding: var(--im-space-5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
