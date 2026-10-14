@@ -54,7 +54,8 @@ await page.selectOption('.im-options__group >> nth=0 >> select', 'bamboo');
 await page.waitForTimeout(800);
 const bg = await page.inputValue('.im-options__group >> nth=0 >> input[type=color]');
 check('切换竹简同步载体底色', bg.toLowerCase() === '#c9b083', bg);
-check('参数面板分为 5 组', (await page.$$('.im-options__group')).length === 5);
+// V2-C2：参数面板新增「动画」分组（字体/字号/载体/色彩/排版/动画 = 6 组）
+check('参数面板分为 6 组', (await page.$$('.im-options__group')).length === 6);
 
 // ---- 4. 5000 字硬上限拦截 ----
 const longText = '永'.repeat(5200);

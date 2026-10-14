@@ -6,6 +6,8 @@ export type LicenseId =
   | 'Apache-2.0'
   | 'ArphicPL'
   | 'OFL-1.1'
+  | 'OFL'
+  | 'OpenGov-TW'
   | 'MIT'
   | 'ISC';
 
@@ -24,6 +26,8 @@ export interface LicenseEntry {
   bundled?: string;
   /** 分类：字体 / 运行时依赖 / 构建期依赖 */
   category: 'font' | 'runtime' | 'build';
+  /** V2-C1 N1.3 / D-V2-02：授权状态待确认，已采用并登记待后续联系获取授权 */
+  pendingAuthorization?: boolean;
 }
 
 /** 应用自身许可（Apache-2.0）。 */
@@ -38,25 +42,72 @@ export const THIRD_PARTY_LICENSES: LicenseEntry[] = [
     name: '文鼎楷体 UKai（Arphic UKai）',
     license: 'ArphicPL',
     url: 'https://www.arphic.com.tw/',
-    usage: '楷体路径字形与 Hanzi Writer 笔顺数据来源',
+    usage: '楷体路径 Hanzi Writer 笔顺数据来源（V2-C4 起字形改用霞鹜文楷）',
     attributionRequired: true,
     category: 'font',
   },
   {
-    name: '思源宋体 Source Han Serif',
+    name: '霞鹜文楷 LXGW WenKai Lite',
     license: 'OFL-1.1',
-    url: 'https://scripts.sil.org/OFL',
-    usage: '宋体路径字形（缺失时回退系统衬线）',
+    url: 'https://github.com/lxgw/LxgwWenKai-Lite',
+    usage: '楷体路径字形；V2-C4 N4.2 起随包提供分片字库（25694 字形）',
     attributionRequired: true,
+    bundled: '/fonts/builtin/fonts.css',
+    category: 'font',
+  },
+  {
+    name: '思源宋体 Noto Serif SC / Source Han Serif',
+    license: 'OFL-1.1',
+    url: 'https://github.com/adobe-fonts/source-han-serif',
+    usage: '宋体路径字形；V2-C4 N4.2 起随包提供分片字库（30928 字形），不再依赖系统字体',
+    attributionRequired: true,
+    bundled: '/fonts/builtin/fonts.css',
+    category: 'font',
+  },
+  {
+    name: '马善政毛笔楷 Ma Shan Zheng',
+    license: 'OFL-1.1',
+    url: 'https://github.com/googlefonts/mashanzheng',
+    usage: '毛笔楷路径字形；V2-C4 N4.2 新增，随包提供分片字库（5959 字形）',
+    attributionRequired: true,
+    bundled: '/fonts/builtin/fonts.css',
     category: 'font',
   },
   {
     name: '霞鹜篆书 LXGW Seal',
     license: 'OFL-1.1',
     url: 'https://scripts.sil.org/OFL',
-    usage: '小篆路径字形（受限字库，Unicode 18.0 小篆码位）',
+    usage: '小篆路径字形（受限字库，Unicode 18.0 小篆码位）；L0 保底字源',
     attributionRequired: true,
     bundled: '/fonts/seal/OFL.txt',
+    category: 'font',
+  },
+  {
+    name: '敬峰中山王篆（L1）',
+    license: 'OFL',
+    url: 'https://scripts.sil.org/OFL',
+    usage: '小篆路径主力字源（~2832 字，替代 L0 成为主力）；V2.0 纳入（TBD-V2-01 关闭）',
+    attributionRequired: true,
+    pendingAuthorization: true,
+    category: 'font',
+  },
+  {
+    name: '全字库说文解字（L2）',
+    license: 'OpenGov-TW',
+    url: 'https://data.gov.tw/',
+    usage: '小篆路径最大覆盖字源（6721 字，生僻字兜底）；V2.0 纳入（用户决策）',
+    attributionRequired: true,
+    pendingAuthorization: true,
+    category: 'font',
+  },
+  {
+    name: '阿里妈妈刀隶体（Alimama Dao Li Ti）',
+    license: 'OFL',
+    url: 'https://www.alimama.com/',
+    usage:
+      '隶书路径字形（真隶书，GB2312 覆盖 6763 字）。V2-C4 N4.3：官方仅通过阿里妈妈平台发布，无公开直链 CDN，需手动取件后运行 scripts/build-fonts.py 接入；当前隶书回退系统字体',
+    attributionRequired: true,
+    pendingAuthorization: true,
     category: 'font',
   },
   {
@@ -120,6 +171,11 @@ export const THIRD_PARTY_LICENSES: LicenseEntry[] = [
 /** 需要 UI 可见署名的条目（发布检查单 V1-C2 断言依据）。 */
 export function attributionRequiredEntries(): LicenseEntry[] {
   return THIRD_PARTY_LICENSES.filter((l) => l.attributionRequired);
+}
+
+/** V2-C1 N1.3 / D-V2-02：授权状态待确认、已采用并登记待联系获取授权的条目。 */
+export function pendingAuthorizationEntries(): LicenseEntry[] {
+  return THIRD_PARTY_LICENSES.filter((l) => l.pendingAuthorization);
 }
 
 /** 随包分发的许可文件清单（发布检查单：许可文本随附）。 */

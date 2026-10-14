@@ -88,35 +88,115 @@
   }
 }
 
-/* 编辑器三栏 */
+/* ===== 编辑器三栏（V2-C5 N5.1 重排）=====
+ * 左：正文（可折叠） / 中：预览（等比缩放居中） / 右：参数（可折叠）
+ * 断点：≥1440 三栏；1200–1440 收窄左右栏；900–1200 预览置顶两栏；<900 单栏堆叠。
+ */
+.im-editor {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - var(--im-header-h));
+}
 .im-editor__bar {
   display: flex;
   align-items: center;
   gap: var(--im-space-3);
-  padding-bottom: var(--im-space-4);
+  padding-bottom: var(--im-space-3);
   margin-bottom: var(--im-space-4);
   border-bottom: 1px solid var(--im-color-line);
+  flex-wrap: wrap;
+  row-gap: var(--im-space-2);
+}
+.im-editor__bar-spacer {
+  flex: 1 1 auto;
+  min-width: var(--im-space-2);
 }
 .im-editor__grid {
   display: grid;
-  grid-template-columns: 320px 1fr 300px;
+  grid-template-columns: 320px minmax(0, 1fr) 320px;
   gap: var(--im-space-4);
-  align-items: start;
+  align-items: stretch;
+  flex: 1 1 auto;
+  min-height: 0;
 }
-@media (max-width: 1080px) {
-  .im-editor__grid {
-    grid-template-columns: 1fr;
-  }
+/* 折叠态：对应栏收成窄轨，中栏自动吃掉释放的空间（grid 重排，非隐藏遮挡） */
+.im-editor__grid[data-body-open='false'] {
+  grid-template-columns: 56px minmax(0, 1fr) 320px;
+}
+.im-editor__grid[data-options-open='false'] {
+  grid-template-columns: 320px minmax(0, 1fr) 56px;
+}
+.im-editor__grid[data-body-open='false'][data-options-open='false'] {
+  grid-template-columns: 56px minmax(0, 1fr) 56px;
 }
 .im-editor__pane {
   background: var(--im-color-surface);
   border: 1px solid var(--im-color-line);
   border-radius: var(--im-radius-lg);
   padding: var(--im-space-4);
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.im-editor__pane--collapsed {
+  padding: var(--im-space-3);
+}
+.im-editor__panehead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--im-space-2);
+  margin-bottom: var(--im-space-3);
+}
+.im-editor__panehead .im-card__title {
+  margin: 0;
+}
+.im-editor__panebody {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--im-space-3);
+}
+.im-editor__collapsed-hint {
+  font-size: var(--im-fs-xs);
+  color: var(--im-color-ink-faint);
+  margin: 0;
+  line-height: 1.5;
+}
+/* 折叠后的竖排窄条：点击展开 */
+.im-editor__rail {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  letter-spacing: 0.28em;
+  padding: var(--im-space-3) var(--im-space-2);
+  min-height: 220px;
+  width: 100%;
+  border: 1px dashed var(--im-color-line-strong);
+  border-radius: var(--im-radius-md);
+  background: transparent;
+  color: var(--im-color-ink-soft);
+  font-family: var(--im-font-serif);
+  font-size: var(--im-fs-sm);
+  cursor: pointer;
+}
+.im-editor__rail:hover {
+  background: var(--im-color-surface-hover);
+  color: var(--im-color-ink);
+}
+.im-editor__preview {
+  min-height: 520px;
+}
+.im-editor__scroll {
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: var(--im-space-1);
 }
 .im-textarea {
   width: 100%;
-  min-height: 320px;
+  flex: 1 1 auto;
+  min-height: 260px;
   resize: vertical;
   font-family: var(--im-font-serif);
   font-size: var(--im-fs-lg);
@@ -131,10 +211,59 @@
   outline: none;
   border-color: var(--im-color-gold);
 }
-.im-editor__preview {
-  min-height: 480px;
-  display: flex;
-  flex-direction: column;
+
+/* ≥1440：放宽左右栏 */
+@media (min-width: 1440px) {
+  .im-editor__grid {
+    grid-template-columns: 360px minmax(0, 1fr) 360px;
+  }
+}
+/* 1200–1440：适度收窄，保证中栏呼吸感 */
+@media (max-width: 1439px) and (min-width: 1201px) {
+  .im-editor__grid {
+    grid-template-columns: 288px minmax(0, 1fr) 288px;
+    gap: var(--im-space-3);
+  }
+}
+/* 900–1200：预览置顶，正文与参数分列其下 */
+@media (max-width: 1200px) {
+  .im-editor__grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      'preview preview'
+      'body options';
+  }
+  .im-editor__pane--body {
+    grid-area: body;
+  }
+  .im-editor__pane--preview {
+    grid-area: preview;
+  }
+  .im-editor__pane--options {
+    grid-area: options;
+  }
+  .im-editor__preview {
+    min-height: 440px;
+  }
+  .im-preview__stagewrap {
+    max-height: 46vh;
+  }
+}
+/* <900：单栏堆叠 */
+@media (max-width: 899px) {
+  .im-editor__grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'preview'
+      'body'
+      'options';
+  }
+  .im-editor__preview {
+    min-height: 380px;
+  }
+  .im-preview__stagewrap {
+    max-height: 52vh;
+  }
 }
 .im-preview-ph {
   flex: 1;
@@ -155,20 +284,46 @@
   );
 }
 
-/* 实时预览画布 */
+/* 实时预览画布（V2-C5 N5.1：按画布比例等比缩放居中） */
 .im-preview {
   display: flex;
   flex-direction: column;
   gap: var(--im-space-3);
+  min-height: 0;
+  height: 100%;
+}
+.im-preview__stagewrap {
+  flex: 1 1 auto;
+  min-height: 320px;
+  max-height: 62vh;
+  display: grid;
+  place-items: center;
+  padding: var(--im-space-3);
+  border-radius: var(--im-radius-md);
+  background: repeating-linear-gradient(
+    45deg,
+    var(--im-color-paper-deep),
+    var(--im-color-paper-deep) 12px,
+    var(--im-color-paper) 12px,
+    var(--im-color-paper) 24px
+  );
+  overflow: hidden;
 }
 .im-preview__stage {
-  width: 100%;
-  max-width: 360px;
-  margin: 0 auto;
-  border-radius: var(--im-radius-md);
+  border-radius: var(--im-radius-sm);
   overflow: hidden;
   box-shadow: var(--im-shadow-md);
   background: var(--im-color-paper);
+  line-height: 0;
+}
+.im-preview__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--im-space-3);
+  font-size: var(--im-fs-xs);
+  color: var(--im-color-ink-faint);
+  font-family: var(--im-font-mono);
 }
 .im-preview__canvas {
   display: block;
@@ -198,4 +353,54 @@
   font-variant-numeric: tabular-nums;
   min-width: 34px;
   text-align: right;
+}
+
+/* 折叠态下栅格列定义需覆盖各断点（放在最后以保证优先级） */
+@media (min-width: 1440px) {
+  .im-editor__grid[data-body-open='false'] {
+    grid-template-columns: 56px minmax(0, 1fr) 360px;
+  }
+  .im-editor__grid[data-options-open='false'] {
+    grid-template-columns: 360px minmax(0, 1fr) 56px;
+  }
+  .im-editor__grid[data-body-open='false'][data-options-open='false'] {
+    grid-template-columns: 56px minmax(0, 1fr) 56px;
+  }
+}
+@media (max-width: 1439px) and (min-width: 1201px) {
+  .im-editor__grid[data-body-open='false'] {
+    grid-template-columns: 56px minmax(0, 1fr) 288px;
+  }
+  .im-editor__grid[data-options-open='false'] {
+    grid-template-columns: 288px minmax(0, 1fr) 56px;
+  }
+  .im-editor__grid[data-body-open='false'][data-options-open='false'] {
+    grid-template-columns: 56px minmax(0, 1fr) 56px;
+  }
+}
+/* ≤1200 为两栏，折叠时收成窄轨 */
+@media (max-width: 1200px) {
+  .im-editor__grid[data-body-open='false'],
+  .im-editor__grid[data-options-open='false'],
+  .im-editor__grid[data-body-open='false'][data-options-open='false'] {
+    grid-template-columns: minmax(0, 1fr) 56px;
+    grid-template-areas:
+      'preview preview'
+      'body options';
+  }
+  .im-editor__grid[data-body-open='false'][data-options-open='false'] {
+    grid-template-columns: 56px minmax(0, 1fr);
+  }
+}
+/* ≤899 单栏堆叠时，折叠栏不再占用横向列 */
+@media (max-width: 899px) {
+  .im-editor__grid[data-body-open='false'],
+  .im-editor__grid[data-options-open='false'],
+  .im-editor__grid[data-body-open='false'][data-options-open='false'] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'preview'
+      'body'
+      'options';
+  }
 }

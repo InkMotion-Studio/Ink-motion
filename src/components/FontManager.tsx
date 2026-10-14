@@ -4,21 +4,25 @@ import { useEffect, useRef, useState } from 'react';
 import { Button, toast } from '@/components';
 import { deleteFont } from '@/db/database';
 import { useSettingsStore } from '@/store/settings';
-import { uploadFont, FONT_SIZE_LIMIT } from '@/lib/fontUpload';
+import { uploadFont, FONT_SIZE_LIMIT, type FontUploadErrorCode } from '@/lib/fontUpload';
+import { unregisterFont, isFontRegistered, uploadedFamilyName } from '@/lib/fontRegistry';
+import { useT } from '@/lib/useI18n';
 import type { FontRecord, FontFamily } from '@/db/types';
 
-const FAMILY_OPTIONS: Array<{ value: FontFamily; label: string }> = [
-  { value: 'kai', label: '楷体路径' },
-  { value: 'song', label: '宋体路径' },
-  { value: 'seal', label: '小篆路径' },
-];
-
 export function FontManager() {
+  const t = useT();
   const fonts = useSettingsStore((s) => s.fonts);
   const refreshFonts = useSettingsStore((s) => s.refreshFonts);
   const [uploading, setUploading] = useState(false);
   const [family, setFamily] = useState<FontFamily>('kai');
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const familyOptions: Array<{ value: FontFamily; label: string }> = [
+    { value: 'kai', label: t('font.target.kai') },
+    { value: 'song', label: t('font.target.song') },
+    { value: 'brush', label: t('font.target.brush') },
+    { value: 'seal', label: t('font.target.seal') },
+  ];
 
   useEffect(() => {
     // 首次挂载确保列表已加载
@@ -33,10 +37,12 @@ export function FontManager() {
     try {
       const res = await uploadFont(file, { family });
       if (res.ok) {
-        toast.success(`已添加字体「${res.record?.name ?? file.name}」`);
+        toast.success(t('font.addOk', { name: res.record?.name ?? file.name }));
         await refreshFonts();
       } else {
-        toast.error(res.error ?? '字体上传失败');
+        // V2-C4 N4.1：错误码经 i18n 呈现（{mb} 占位符由词条自带）
+        const code: FontUploadErrorCode = res.error ?? 'font.err.generic';
+        toast.error(t(code, { mb: limitMbForMsg }));
       }
     } finally {
       setUploading(false);
@@ -44,34 +50,34 @@ export function FontManager() {
   };
 
   const onDelete = async (f: FontRecord) => {
-    if (!window.confirm(`确认删除字体「${f.name}」？`)) return;
+    if (!window.confirm(t('font.deleteConfirm', { name: f.name }))) return;
     await deleteFont(f.id);
+    unregisterFont(f.id); // V2-C4 N4.1：同步从注册表移除，避免残留字族
     await refreshFonts();
-    toast.success('已删除字体');
+    toast.success(t('font.deletedOk'));
   };
 
   const uploaded = fonts.filter((f) => f.source === 'uploaded');
-  const limitMb = (FONT_SIZE_LIMIT / 1024 / 1024).toFixed(0);
+  const limitMbForMsg = (FONT_SIZE_LIMIT / 1024 / 1024).toFixed(0);
+  const limitMb = limitMbForMsg;
 
   return (
     <div className="im-font-mgr">
       <div className="im-font-mgr__head">
-        <span>字体管理</span>
-        <span className="im-font-mgr__count">已上传 {uploaded.length} 个</span>
+        <span>{t('font.manage')}</span>
+        <span className="im-font-mgr__count">{t('font.uploadedCount', { n: uploaded.length })}</span>
       </div>
-      <p className="im-font-mgr__tip">
-        支持 .ttf / .otf / .woff / .woff2，单个文件上限 {limitMb}MB。字体仅保存在本机浏览器，不会上传。
-      </p>
+      <p className="im-font-mgr__tip">{t('settings.fonts.tip', { mb: limitMb })}</p>
 
       <div className="im-font-mgr__actions">
         <label className="im-font-mgr__family">
-          <span>归属路径</span>
+          <span>{t('font.pathBelong')}</span>
           <select
             value={family}
             onChange={(e) => setFamily(e.target.value as FontFamily)}
-            aria-label="上传字体归属路径"
+            aria-label={t('font.pathBelongAria')}
           >
-            {FAMILY_OPTIONS.map((o) => (
+            {familyOptions.map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}
               </option>
@@ -79,35 +85,54 @@ export function FontManager() {
           </select>
         </label>
         <Button variant="secondary" size="sm" onClick={() => fileRef.current?.click()} disabled={uploading}>
-          {uploading ? '上传中…' : '上传字体'}
+          {uploading ? t('font.uploading') : t('font.upload')}
         </Button>
         <input
           ref={fileRef}
           type="file"
           accept=".ttf,.otf,.woff,.woff2,.ttc"
           className="im-sr-only"
-          aria-label="选择要上传的字体文件"
+          aria-label={t('font.pickFileAria')}
           onChange={onFile}
         />
       </div>
 
       {uploaded.length === 0 ? (
-        <p className="im-font-mgr__empty">尚未上传任何字体。</p>
+        <p className="im-font-mgr__empty">{t('font.none')}</p>
       ) : (
         <ul className="im-font-mgr__list">
-          {uploaded.map((f) => (
-            <li key={f.id} className="im-font-mgr__item">
-              <div>
-                <strong>{f.name}</strong>
-                <span className="im-font-mgr__meta">
-                  {f.format} · {f.license}
+          {uploaded.map((f) => {
+            // V2-C4 N4.4：字样预览用已注册字体真实渲染，让"上传是否生效"一目了然
+            const previewFamily = uploadedFamilyName(f.name);
+            const active = isFontRegistered(f.id);
+            return (
+              <li key={f.id} className="im-font-mgr__item">
+                <div className="im-font-mgr__info">
+                  <strong>{f.name}</strong>
+                  <span className="im-font-mgr__meta">
+                    {f.format} · {f.license}
+                  </span>
+                </div>
+                <div
+                  className="im-font-mgr__preview"
+                  style={{ fontFamily: active ? `"${previewFamily}", serif` : undefined }}
+                  title={t('font.preview')}
+                >
+                  {t('font.previewSample')}
+                </div>
+                <span
+                  className={
+                    active ? 'im-font-mgr__badge im-font-mgr__badge--on' : 'im-font-mgr__badge'
+                  }
+                >
+                  {active ? t('font.effective') : t('font.notEffective')}
                 </span>
-              </div>
-              <Button variant="danger" size="sm" onClick={() => onDelete(f)}>
-                删除
-              </Button>
-            </li>
-          ))}
+                <Button variant="danger" size="sm" onClick={() => onDelete(f)}>
+                  {t('font.delete')}
+                </Button>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

@@ -2,12 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Card, Modal, Input, Select, toast } from '@/components';
 import { listProjects, deleteProject, updateProject, db } from '@/db/database';
+import { useT } from '@/lib/useI18n';
 import type { Project } from '@/db/types';
 
 type SortKey = 'updated' | 'created' | 'title';
 
 export function ProjectsPage() {
   const navigate = useNavigate();
+  const t = useT();
   const [items, setItems] = useState<Project[]>([]);
   const [toDelete, setToDelete] = useState<Project | null>(null);
   const [q, setQ] = useState('');
@@ -31,7 +33,7 @@ export function ProjectsPage() {
   const confirmDelete = async () => {
     if (!toDelete) return;
     await deleteProject(toDelete.id);
-    toast.success('已删除');
+    toast.success(t('projects.deleted'));
     setToDelete(null);
     refresh();
   };
@@ -41,17 +43,17 @@ export function ProjectsPage() {
     const copy: Project = {
       ...p,
       id: crypto.randomUUID(),
-      title: `${p.title} 副本`,
+      title: `${p.title} ${t('projects.duplicateSuffix')}`,
       createdAt: now,
       updatedAt: now,
     };
     await db.projects.add(copy);
-    toast.success('已创建副本');
+    toast.success(t('projects.duplicated'));
     refresh();
   };
 
   const rename = async (p: Project) => {
-    const next = window.prompt('重命名作品', p.title);
+    const next = window.prompt(t('projects.renamePrompt'), p.title);
     if (next && next.trim() && next !== p.title) {
       await updateProject(p.id, { title: next.trim() });
       refresh();
@@ -61,31 +63,31 @@ export function ProjectsPage() {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <h1 style={{ fontSize: 'var(--im-fs-2xl)' }}>我的项目</h1>
+        <h1 style={{ fontSize: 'var(--im-fs-2xl)' }}>{t('projects.title')}</h1>
         <Button variant="primary" size="sm" onClick={() => navigate('/')}>
-          新建
+          {t('projects.new')}
         </Button>
       </div>
 
       <div className="im-toolbar">
         <div style={{ flex: 1, minWidth: 200 }}>
           <Input
-            placeholder="搜索标题或正文…"
+            placeholder={t('projects.searchPlaceholder')}
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            aria-label="搜索项目"
+            aria-label={t('projects.searchAria')}
           />
         </div>
         <div style={{ width: 190 }}>
           <Select
             value={sort}
             options={[
-              { value: 'updated', label: '按修改时间' },
-              { value: 'created', label: '按创建时间' },
-              { value: 'title', label: '按标题' },
+              { value: 'updated', label: t('projects.sort.updated') },
+              { value: 'created', label: t('projects.sort.created') },
+              { value: 'title', label: t('projects.sort.title') },
             ]}
             onChange={(v) => setSort(v as SortKey)}
-            aria-label="排序方式"
+            aria-label={t('projects.sortAria')}
           />
         </div>
       </div>
@@ -93,7 +95,7 @@ export function ProjectsPage() {
       {shown.length === 0 ? (
         <Card>
           <p style={{ color: 'var(--im-color-ink-faint)' }}>
-            {items.length === 0 ? '还没有作品。从首页新建或选用模板。' : '没有匹配的项目。'}
+            {items.length === 0 ? t('projects.empty') : t('projects.noMatch')}
           </p>
         </Card>
       ) : (
@@ -101,7 +103,7 @@ export function ProjectsPage() {
           {shown.map((p) => (
             <Card key={p.id}>
               {p.thumbnail ? (
-                <img className="im-proj-thumb" src={p.thumbnail} alt={`${p.title} 缩略图`} />
+                <img className="im-proj-thumb" src={p.thumbnail} alt={`${p.title} ${t('home.thumbAlt')}`} />
               ) : (
                 <div className="im-proj-thumb im-proj-thumb--empty" aria-hidden="true">
                   墨
@@ -111,10 +113,10 @@ export function ProjectsPage() {
                 {p.title}
               </h3>
               <p style={{ color: 'var(--im-color-ink-faint)', fontSize: 'var(--im-fs-sm)' }}>
-                {p.text.length > 24 ? p.text.slice(0, 24) + '…' : p.text || '（空）'}
+                {p.text.length > 24 ? p.text.slice(0, 24) + '…' : p.text || t('home.textEmpty')}
               </p>
               <p style={{ color: 'var(--im-color-ink-faint)', fontSize: 'var(--im-fs-xs)' }}>
-                {new Date(p.updatedAt).toLocaleString('zh-CN')}
+                {new Date(p.updatedAt).toLocaleString()}
               </p>
               <div
                 style={{
@@ -125,16 +127,16 @@ export function ProjectsPage() {
                 }}
               >
                 <Button variant="ghost" size="sm" onClick={() => navigate(`/editor/${p.id}`)}>
-                  打开
+                  {t('projects.open')}
                 </Button>
                 <Button variant="ghost" size="sm" onClick={() => rename(p)}>
-                  重命名
+                  {t('projects.rename')}
                 </Button>
                 <Button variant="ghost" size="sm" onClick={() => duplicate(p)}>
-                  复制
+                  {t('projects.duplicate')}
                 </Button>
                 <Button variant="danger" size="sm" onClick={() => setToDelete(p)}>
-                  删除
+                  {t('projects.delete')}
                 </Button>
               </div>
             </Card>
@@ -144,20 +146,20 @@ export function ProjectsPage() {
 
       <Modal
         open={!!toDelete}
-        title="确认删除"
+        title={t('projects.deleteTitle')}
         onClose={() => setToDelete(null)}
         footer={
           <>
             <Button variant="ghost" onClick={() => setToDelete(null)}>
-              取消
+              {t('modal.cancel')}
             </Button>
             <Button variant="danger" onClick={confirmDelete}>
-              删除
+              {t('projects.delete')}
             </Button>
           </>
         }
       >
-        确定删除《{toDelete?.title}》？该操作不可撤销，相关导出记录也会一并清除。
+        {t('projects.deleteBody', { title: toDelete?.title ?? '' })}
       </Modal>
     </div>
   );

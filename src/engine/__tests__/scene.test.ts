@@ -98,7 +98,7 @@ describe('N2.6/场景：越界与滚动', () => {
   it('古文字路径（V1.0）：越界字符跳过，在库字符渲染整字（TC-STROKE-03 / TC-V1-GLY-07/10）', async () => {
     // 注入本地字表，避免依赖 public/ 静态资源
     const { loadSealCharset } = await import('@/lib/seal');
-    const cs = await loadSealCharset();
+    const cs = (await loadSealCharset())!;
     // 以真实字表中必然存在的「福」(U+3D01E) 与越界字「永」验证
     const hasFu = cs.modernIndex['福'] !== undefined;
     const s = new Scene({ ...base, text: '永福', fontFamily: 'seal', scrollEnabled: false });

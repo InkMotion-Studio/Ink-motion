@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { useT } from '@/lib/useI18n';
 import './components.css';
 
 export type ToastType = 'success' | 'error' | 'info';
@@ -37,17 +38,18 @@ export const toast = {
 };
 
 export function ToastContainer() {
+  const t = useT();
   const toasts = useToastStore((s) => s.toasts);
   const dismiss = useToastStore((s) => s.dismiss);
   return (
-    <div className="im-toast-wrap" role="region" aria-live="polite" aria-label="通知">
-      {toasts.map((t) => (
-        <div key={t.id} className={`im-toast im-toast--${t.type}`} role="status">
-          <span className="im-toast__msg">{t.message}</span>
+    <div className="im-toast-wrap" role="region" aria-live="polite" aria-label={t('a11y.notifications')}>
+      {toasts.map((item) => (
+        <div key={item.id} className={`im-toast im-toast--${item.type}`} role="status">
+          <span className="im-toast__msg">{item.message}</span>
           <button
             className="im-modal__close"
-            aria-label="关闭通知"
-            onClick={() => dismiss(t.id)}
+            aria-label={t('a11y.closeNotification')}
+            onClick={() => dismiss(item.id)}
             style={{ fontSize: 16 }}
           >
             ×

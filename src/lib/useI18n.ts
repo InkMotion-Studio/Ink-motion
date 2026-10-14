@@ -29,6 +29,9 @@ export function useT() {
   }, [lang]);
 
   // packReady 变化时重建 t，确保英文包加载完成后文案刷新
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  return useCallback((key: string) => translate(key, lang), [lang, packReady]);
+  return useCallback(
+    (key: string, params?: Record<string, string | number>) => translate(key, lang, params),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- packReady 仅为触发英文包加载完成后重建
+    [lang, packReady],
+  );
 }

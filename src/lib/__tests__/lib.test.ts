@@ -57,8 +57,8 @@ describe('工程导入导出（N3.5）', () => {
 });
 
 describe('预设模板（N3.1）', () => {
-  it('提供 4 个硬编码预设（含 V1-C2 新增小篆模板）', () => {
-    expect(PRESET_TEMPLATES.length).toBe(4);
+  it('提供 5 个硬编码预设（含 V1-C2 小篆模板与 V2-C2 隶书模板）', () => {
+    expect(PRESET_TEMPLATES.length).toBe(5);
     for (const t of PRESET_TEMPLATES) {
       expect(t.text.length).toBeGreaterThan(0);
       expect(t.title.length).toBeGreaterThan(0);
@@ -73,6 +73,9 @@ describe('字体目录与许可（N1.4）', () => {
     expect(getFontMeta('seal').available).toBe(true); // V1.0 受限字库模式可用
     expect(getFontMeta('seal').path).toBe('seal-restricted');
     expect(isRenderable('永', 'seal')).toBe(true); // 越界判定交由 seal.ts
+    expect(getFontMeta('li').available).toBe(true); // V2-C2 隶书受限字库可用
+    expect(getFontMeta('li').path).toBe('li-restricted');
+    expect(isRenderable('永', 'li')).toBe(true); // 越界判定交由 lishu.ts
     expect(isRenderable('永', 'kai')).toBe(true);
   });
 

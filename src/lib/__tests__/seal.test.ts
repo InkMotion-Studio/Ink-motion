@@ -26,11 +26,11 @@ function buildCharset() {
   const glyphs = SAMPLE.rows.map((r) => ({
     codePoint: r.seal,
     modernChars: [...r.ben_ch, ...r.jian_ch, ...r.li_ch, ...r.other_ch],
-    source: 'lxgw' as const,
+    layer: 'L0' as const,
   }));
   const modernIndex: Record<string, number> = {};
   for (const g of glyphs) for (const ch of g.modernChars) if (!(ch in modernIndex)) modernIndex[ch] = g.codePoint;
-  return { version: SAMPLE.version, glyphs, modernIndex };
+  return { version: SAMPLE.version, layer: 'L0' as const, glyphs, modernIndex };
 }
 
 describe('V1-C1 小篆字库与映射', () => {
@@ -49,7 +49,7 @@ describe('V1-C1 小篆字库与映射', () => {
   });
 
   it('GV-02 字表可解析并构建 modernIndex（今字→码位）', async () => {
-    const cs = await loadSealCharset();
+    const cs = (await loadSealCharset())!;
     expect(cs.version).toBe('seal-test');
     expect(cs.glyphs.length).toBe(4);
     expect(cs.modernIndex['福']).toBe(0x3d01e);

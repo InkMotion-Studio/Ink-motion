@@ -7,13 +7,28 @@ import {
   PreviewCanvas,
   ExportDialog,
   OptionsPanel,
+  type OptionGroupKey,
   type PreviewHandle,
 } from '@/components';
 import { useEditorStore } from '@/store/editor';
 import { TEXT_HARD_LIMIT, updateProject } from '@/db/database';
 import { downloadProjectJSON, parseProjectJSON } from '@/lib/projectIO';
-import { useSealOutOfRange } from '@/lib/useSeal';
+import { useSealOutOfRange, useSealCoverage } from '@/lib/useSeal';
+import { useLiOutOfRange, useLiCoverage } from '@/lib/useLi';
 import { useT } from '@/lib/useI18n';
+
+/** V2-C5 N5.1：左右栏折叠态的本地持久化键（避免每次进入都手动收起） */
+const LS_BODY_OPEN = 'im.editor.bodyOpen';
+const LS_OPTIONS_OPEN = 'im.editor.optionsOpen';
+
+function readCollapsed(key: string, fallback: boolean): boolean {
+  try {
+    const v = localStorage.getItem(key);
+    return v === null ? fallback : v === '1';
+  } catch {
+    return fallback;
+  }
+}
 
 export function EditorPage() {
   const { id } = useParams<{ id: string }>();
@@ -24,9 +39,38 @@ export function EditorPage() {
   const previewRef = useRef<PreviewHandle>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // V2-C5 N5.1：左右栏可折叠；状态持久化。
+  const [bodyOpen, setBodyOpen] = useState(() => readCollapsed(LS_BODY_OPEN, true));
+  const [optionsOpen, setOptionsOpen] = useState(() => readCollapsed(LS_OPTIONS_OPEN, true));
+  // V2-C5 N5.2：参数分组手风琴展开态（默认仅前四组展开，画布/动画收起以降低噪声）
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
+    carrier: true,
+    font: true,
+    write: true,
+    scroll: false,
+    canvas: false,
+    animation: false,
+  });
+
   useEffect(() => {
     if (id) init(id);
   }, [id, init]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(LS_BODY_OPEN, bodyOpen ? '1' : '0');
+    } catch {
+      /* 忽略隐私模式下的写入失败 */
+    }
+  }, [bodyOpen]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(LS_OPTIONS_OPEN, optionsOpen ? '1' : '0');
+    } catch {
+      /* 同上 */
+    }
+  }, [optionsOpen]);
 
   const doSave = useCallback(async () => {
     await save();
@@ -36,6 +80,10 @@ export function EditorPage() {
   // V1-C1 N1.3：古文字路径越界字符检测与提示（TC-V1-GLY-07 / IM-UI-001 §14.3）
   // 必须置于所有提前 return 之前，保证 hooks 调用顺序稳定
   const outOfRange = useSealOutOfRange(project?.text ?? '', project?.options.fontFamily ?? 'kai');
+  const sealCoverage = useSealCoverage(project?.text ?? '', project?.options.fontFamily ?? 'kai');
+  // V2-C2 N2.2：隶书路径越界检测与覆盖率（与篆书并行，独立提示块）
+  const liOutOfRange = useLiOutOfRange(project?.text ?? '', project?.options.fontFamily ?? 'kai');
+  const liCoverage = useLiCoverage(project?.text ?? '', project?.options.fontFamily ?? 'kai');
 
   // 快捷键：Ctrl/Cmd+S 保存
   useEffect(() => {
@@ -50,16 +98,13 @@ export function EditorPage() {
   }, [doSave]);
 
   // 缩略图：场景就绪后写回项目
-  const onSnapshot = useCallback(
-    (dataUrl: string) => {
-      const p = useEditorStore.getState().project;
-      if (p) void updateProject(p.id, { thumbnail: dataUrl });
-    },
-    [],
-  );
+  const onSnapshot = useCallback((dataUrl: string) => {
+    const p = useEditorStore.getState().project;
+    if (p) void updateProject(p.id, { thumbnail: dataUrl });
+  }, []);
 
-  if (loading) return <p style={{ padding: 'var(--im-space-5)' }}>加载中…</p>;
-  if (!project) return <p style={{ padding: 'var(--im-space-5)' }}>项目不存在。</p>;
+  if (loading) return <p style={{ padding: 'var(--im-space-5)' }}>{t('editor.loading')}</p>;
+  if (!project) return <p style={{ padding: 'var(--im-space-5)' }}>{t('editor.notFound')}</p>;
 
   const remaining = TEXT_HARD_LIMIT - project.text.length;
 
@@ -73,13 +118,15 @@ export function EditorPage() {
       setText(parsed.text);
       setOptions(parsed.options);
       await useEditorStore.getState().save();
-      toast.success('已导入作品');
+      toast.success(t('editor.importOk'));
       void p;
       navigate(`/editor/${created.id}`);
     } catch (e) {
-      toast.error(`导入失败：${(e as Error).message}`);
+      toast.error(t('editor.importFail', { msg: (e as Error).message }));
     }
   };
+
+  const bodyWordCount = project.text.length;
 
   return (
     <div className="im-editor">
@@ -93,7 +140,7 @@ export function EditorPage() {
           aria-label={t('editor.title')}
           style={{ maxWidth: 260 }}
         />
-        <span style={{ flex: 1 }} />
+        <span className="im-editor__bar-spacer" />
         <span
           aria-live="polite"
           style={{ fontSize: 'var(--im-fs-sm)', color: 'var(--im-color-ink-faint)' }}
@@ -111,7 +158,7 @@ export function EditorPage() {
           type="file"
           accept="application/json,.json"
           className="im-sr-only"
-          aria-label="选择要导入的工程 JSON 文件"
+          aria-label={t('editor.importAria')}
           onChange={(e) => {
             const f = e.target.files?.[0];
             if (f) void onImport(f);
@@ -133,49 +180,161 @@ export function EditorPage() {
         </Button>
       </header>
 
-      <div className="im-editor__grid">
-        <section className="im-editor__pane" aria-label={t('editor.body')}>
-          <h3 className="im-card__title">{t('editor.body')}</h3>
-          <textarea
-            className="im-textarea"
-            value={project.text}
-            maxLength={TEXT_HARD_LIMIT}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="输入要书写的古典诗文，竖排右起逐笔呈现…"
-            aria-label={t('editor.body')}
-          />
-          <p
-            style={{
-              fontSize: 'var(--im-fs-xs)',
-              color: remaining < 200 ? 'var(--im-color-danger)' : 'var(--im-color-ink-faint)',
-            }}
-          >
-            {t('editor.charRemaining')} {remaining} / {TEXT_HARD_LIMIT} 字
-          </p>
-          {project.options.fontFamily === 'seal' && (
-            <p
-              className="im-editor__seal-hint"
-              aria-live="polite"
-              role="status"
-              style={{ fontSize: 'var(--im-fs-xs)', color: 'var(--im-color-ink-faint)' }}
+      <div
+        className="im-editor__grid"
+        data-body-open={bodyOpen ? 'true' : 'false'}
+        data-options-open={optionsOpen ? 'true' : 'false'}
+      >
+        {/* 左栏：正文（可折叠） */}
+        <section
+          className={`im-editor__pane im-editor__pane--body${bodyOpen ? '' : ' im-editor__pane--collapsed'}`}
+          aria-label={t('editor.body')}
+        >
+          <div className="im-editor__panehead">
+            <h3 className="im-card__title">{t('editor.body')}</h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              aria-expanded={bodyOpen}
+              onClick={() => setBodyOpen((v) => !v)}
             >
-              {outOfRange.length === 0
-                ? '小篆（受限字库）：当前文本均在字表内，可完整呈现。'
-                : `${t('seal.outOfRangeHint')}「${outOfRange.join('')}」`}
-              <br />
-              古文字路径为受限字库模式，不提供逐笔书写，仅整字显现。
-            </p>
+              {bodyOpen ? t('editor.collapse') : t('editor.expand')}
+            </Button>
+          </div>
+          {bodyOpen ? (
+            <div className="im-editor__panebody">
+              <textarea
+                className="im-textarea"
+                value={project.text}
+                maxLength={TEXT_HARD_LIMIT}
+                onChange={(e) => setText(e.target.value)}
+                placeholder={t('editor.bodyPlaceholder')}
+                aria-label={t('editor.body')}
+              />
+              <p
+                style={{
+                  fontSize: 'var(--im-fs-xs)',
+                  color: remaining < 200 ? 'var(--im-color-danger)' : 'var(--im-color-ink-faint)',
+                  margin: 0,
+                }}
+              >
+                {t('editor.charRemaining')} {remaining} / {TEXT_HARD_LIMIT}
+                {t('editor.charUnit')}
+              </p>
+              {project.options.fontFamily === 'seal' && (
+                <p
+                  className="im-editor__seal-hint"
+                  aria-live="polite"
+                  role="status"
+                  style={{ fontSize: 'var(--im-fs-xs)', color: 'var(--im-color-ink-faint)' }}
+                >
+                  {outOfRange.length === 0
+                    ? t('editor.sealInRange')
+                    : `${t('seal.outOfRangeHint')}「${outOfRange.join('')}」`}
+                  <br />
+                  {t('editor.restrictedNote')}
+                  {sealCoverage && (
+                    <>
+                      <br />
+                      {t('seal.coverage')}：{Math.round(sealCoverage.ratio * 100)}%（
+                      {sealCoverage.covered}/{sealCoverage.total} 字）
+                    </>
+                  )}
+                </p>
+              )}
+              {project.options.fontFamily === 'li' && (
+                <p
+                  className="im-editor__li-hint"
+                  aria-live="polite"
+                  role="status"
+                  style={{ fontSize: 'var(--im-fs-xs)', color: 'var(--im-color-ink-faint)' }}
+                >
+                  {liOutOfRange.length === 0
+                    ? t('editor.liInRange')
+                    : `${t('li.outOfRangeHint')}「${liOutOfRange.join('')}」`}
+                  <br />
+                  {t('editor.restrictedNote')}
+                  {liCoverage && !liCoverage.charsetAvailable && (
+                    <>
+                      <br />
+                      {t('li.charsetPending')}
+                    </>
+                  )}
+                  {liCoverage && liCoverage.charsetAvailable && (
+                    <>
+                      <br />
+                      {t('seal.coverage')}：{Math.round(liCoverage.ratio * 100)}%（
+                      {liCoverage.covered}/{liCoverage.total} 字）
+                    </>
+                  )}
+                </p>
+              )}
+            </div>
+          ) : (
+            <>
+              <button
+                type="button"
+                className="im-editor__rail"
+                onClick={() => setBodyOpen(true)}
+                title={t('editor.expand')}
+              >
+                {t('editor.body')}
+              </button>
+              <p className="im-editor__collapsed-hint">
+                {t('editor.collapsedBody', { n: bodyWordCount })}
+              </p>
+            </>
           )}
         </section>
 
-        <section className="im-editor__pane im-editor__preview" aria-label={t('editor.preview')}>
-          <h3 className="im-card__title">{t('editor.preview')}</h3>
+        {/* 中栏：预览（按画布比例等比缩放居中） */}
+        <section
+          className="im-editor__pane im-editor__pane--preview im-editor__preview"
+          aria-label={t('editor.preview')}
+        >
           <PreviewCanvas ref={previewRef} project={project} onSnapshot={onSnapshot} />
         </section>
 
-        <section className="im-editor__pane" aria-label={t('editor.options')}>
-          <h3 className="im-card__title">{t('editor.options')}</h3>
-          <OptionsPanel options={project.options} onChange={setOptions} />
+        {/* 右栏：参数（可折叠，分组手风琴） */}
+        <section
+          className={`im-editor__pane im-editor__pane--options${optionsOpen ? '' : ' im-editor__pane--collapsed'}`}
+          aria-label={t('editor.options')}
+        >
+          <div className="im-editor__panehead">
+            <h3 className="im-card__title">{t('editor.options')}</h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              aria-expanded={optionsOpen}
+              onClick={() => setOptionsOpen((v) => !v)}
+            >
+              {optionsOpen ? t('editor.collapse') : t('editor.expand')}
+            </Button>
+          </div>
+          {optionsOpen ? (
+            <div className="im-editor__panebody im-editor__scroll">
+              <OptionsPanel
+                options={project.options}
+                onChange={setOptions}
+                openGroups={openGroups}
+                onToggleGroup={(key: OptionGroupKey, open: boolean) =>
+                  setOpenGroups((prev) => ({ ...prev, [key]: open }))
+                }
+              />
+            </div>
+          ) : (
+            <>
+              <button
+                type="button"
+                className="im-editor__rail"
+                onClick={() => setOptionsOpen(true)}
+                title={t('editor.expand')}
+              >
+                {t('editor.options')}
+              </button>
+              <p className="im-editor__collapsed-hint">{t('editor.collapsedOptions')}</p>
+            </>
+          )}
         </section>
       </div>
 
@@ -183,7 +342,7 @@ export function EditorPage() {
         open={exportOpen}
         project={project}
         onClose={() => setExportOpen(false)}
-        onFrame={(t) => previewRef.current?.seek(t)}
+        onFrame={(t2) => previewRef.current?.seek(t2)}
       />
     </div>
   );

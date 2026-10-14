@@ -2,6 +2,7 @@
 // 展示当前小篆字库可用今字（供用户参考"哪些字可渲染"），纯本地读取，无上传。
 import { useEffect, useState } from 'react';
 import { getSealCharset, computeOutOfRange } from '@/lib/useSeal';
+import { useT } from '@/lib/useI18n';
 
 export interface SealCharsetPanelProps {
   /** 当前文本，用于高亮"在库/越界"状态 */
@@ -9,6 +10,7 @@ export interface SealCharsetPanelProps {
 }
 
 export function SealCharsetPanel({ text = '' }: SealCharsetPanelProps) {
+  const t = useT();
   const [chars, setChars] = useState<string[]>([]);
   const [version, setVersion] = useState<string>('');
   const [outRange, setOutRange] = useState<Set<string>>(new Set());
@@ -30,14 +32,12 @@ export function SealCharsetPanel({ text = '' }: SealCharsetPanelProps) {
   }, [text]);
 
   return (
-    <div className="im-seal-panel" aria-label="小篆受限字库浏览">
+    <div className="im-seal-panel" aria-label={t('seal.panelTitle', { n: chars.length })}>
       <div className="im-seal-panel__head">
-        <span>小篆字库（{chars.length} 字）</span>
+        <span>{t('seal.panelTitle', { n: chars.length })}</span>
         <span className="im-seal-panel__version">{version}</span>
       </div>
-      <p className="im-seal-panel__tip">
-        仅收录篆字可渲染；不在表中的字符将自动跳过。字库随版本扩充，非任意文本。
-      </p>
+      <p className="im-seal-panel__tip">{t('seal.panelNote')}</p>
       <div className="im-seal-panel__grid" role="list">
         {chars.map((ch) => {
           const out = outRange.has(ch);
@@ -46,7 +46,7 @@ export function SealCharsetPanel({ text = '' }: SealCharsetPanelProps) {
               key={ch}
               role="listitem"
               className={out ? 'im-seal-panel__cell im-seal-panel__cell--out' : 'im-seal-panel__cell'}
-              title={out ? `${ch}（当前文本越界）` : ch}
+              title={out ? t('seal.panelOutOfRange', { ch }) : ch}
             >
               {ch}
             </span>

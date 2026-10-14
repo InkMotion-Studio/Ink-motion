@@ -12,6 +12,11 @@ const CHROME = process.env.CHROME_EXE;
 const SUITES = [
   { name: 'MVP 回归（run.mjs）', script: 'e2e/run.mjs', base: 'dev' },
   { name: 'V1-C1 古文字字库', script: 'e2e/v1c1.mjs', base: 'dev' },
+  { name: 'V2-C1 篆书字源分层扩展', script: 'e2e/v2c1.mjs', base: 'dev' },
+  { name: 'V2-C2 隶书路径与描边动画', script: 'e2e/v2c2.mjs', base: 'dev' },
+  { name: 'V2-C3 国际化深化', script: 'e2e/v2c3.mjs', base: 'dev' },
+  { name: 'V2-C4 字体体系（上传闭环+内置字库）', script: 'e2e/v2c4.mjs', base: 'preview' },
+  { name: 'V2-C5 核心功能与界面重构', script: 'e2e/v2c5.mjs', base: 'preview' },
   { name: 'V1-C2 主题/多语言/内容页', script: 'e2e/v1c2.mjs', base: 'preview' },
   { name: 'V1-C3 字体上传/4K/取消', script: 'e2e/v1c3.mjs', base: 'preview' },
   { name: 'V1-C5 上线（资产 v2/许可/发布）', script: 'e2e/v1c5.mjs', base: 'preview' },

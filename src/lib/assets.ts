@@ -1,18 +1,19 @@
-// 资产与 CDN 流水线（N0.4 / N5.1 / IM-DB-001 §6.3 / IM-OPS-001 §6）
-// 约定：所有字体 / 纹理 / 字库以命名空间 `inkmotion-assets-v2` 版本化托管。
+// 资产与 CDN 流水线（N0.4 / N5.1 / N5.3 / N1.5 / IM-DB-001 §6.3 / IM-OPS-001 §6）
+// 约定：所有字体 / 纹理 / 字库以命名空间 `inkmotion-assets-v3` 版本化托管。
 // 纯前端：资产经 CDN 加载后用 Cache API 缓存，离线可用；绝不回传用户数据。
 //
+// V2-C1 N1.5 变更：命名空间与缓存名由 v2 升至 v3（新增 L1 敬峰 / L2 全字库篆书字源资产）。
 // V1-C5 N5.1 变更：
 // 1) 命名空间与缓存名由 v1 升至 v2（新增小篆字库资产，缓存版本化升级）；
 // 2) 修复同源回退路径：未配置 VITE_ASSET_CDN 时直接引用 public/ 下的相对路径，
 //    此前会误拼为 `/inkmotion-assets-v1/...`，在静态托管下 404（预缓存静默失败）；
 // 3) 新增历史缓存清理（purgeLegacyAssetCaches），避免旧版本资产长期占用配额（IM-DB-001 §6.4）。
 
-export const ASSET_NAMESPACE = 'inkmotion-assets-v2';
-export const ASSET_CACHE_NAME = 'inkmotion-assets-v2';
+export const ASSET_NAMESPACE = 'inkmotion-assets-v3';
+export const ASSET_CACHE_NAME = 'inkmotion-assets-v3';
 
-/** 历史缓存名：版本升级时清理，防止旧资产长期占用配额。 */
-export const LEGACY_ASSET_CACHE_NAMES: readonly string[] = ['inkmotion-assets-v1'];
+/** 历史缓存名：版本升级时清理，防止旧资产长期占用配额（含 v1、v2）。 */
+export const LEGACY_ASSET_CACHE_NAMES: readonly string[] = ['inkmotion-assets-v1', 'inkmotion-assets-v2'];
 
 /** CDN 前缀（部署期注入 VITE_ASSET_CDN）。留空 = 同源静态托管（public/ 直接发布）。 */
 export const CDN_BASE: string = readCdnBase();
@@ -39,12 +40,24 @@ export interface AssetEntry {
 export const ASSET_MANIFEST: AssetEntry[] = [
   { key: 'texture-paper', path: 'textures/paper.png', kind: 'texture', version: '1.0.0', precache: true },
   { key: 'texture-bamboo', path: 'textures/bamboo.png', kind: 'texture', version: '1.0.0', precache: true },
-  // V1-C5 N5.1：小篆字库资产（霞鹜篆书 LXGW Seal，OFL 1.1）
+  // V1-C5 N5.1：小篆字库资产（霞鹜篆书 LXGW Seal，OFL 1.1）—— L0 保底
   { key: 'seal-font', path: 'fonts/seal/LXGWSeal-Glyphs.woff2', kind: 'font', version: '2.0.0', precache: true },
   { key: 'seal-map', path: 'fonts/seal/seal-map.json', kind: 'data', version: '2.0.0', precache: true },
   { key: 'seal-license', path: 'fonts/seal/OFL.txt', kind: 'license', version: '2.0.0', precache: true },
   // 回退字体（完整 TTF 223KB）：仅主用 woff2 子集加载失败时使用，不预缓存
   { key: 'seal-font-fallback', path: 'fonts/seal/LXGWSeal-Regular.ttf', kind: 'font', version: '2.0.0', precache: false },
+  // V2-C1 N1.1/N1.3：L1 敬峰中山王篆（OFL，~2832 字，主力；资产待按 D-V2-02 提供，缺失时静默跳过）
+  { key: 'seal-font-l1', path: 'fonts/seal/JFZSSeal-Glyphs.woff2', kind: 'font', version: '2.0.0', precache: false },
+  { key: 'seal-map-l1', path: 'fonts/seal/seal-map-l1.json', kind: 'data', version: '2.0.0', precache: false },
+  { key: 'seal-font-l1-fallback', path: 'fonts/seal/JFZSSeal-Regular.ttf', kind: 'font', version: '2.0.0', precache: false },
+  // V2-C1 N1.3：L2 全字库说文解字（台湾地区政府资料开放授权，可商用，6721 字；按需加载，不预缓存）
+  { key: 'seal-font-l2', path: 'fonts/seal/TWSeal-Glyphs.woff2', kind: 'font', version: '2.0.0', precache: false },
+  { key: 'seal-map-l2', path: 'fonts/seal/seal-map-l2.json', kind: 'data', version: '2.0.0', precache: false },
+  { key: 'seal-font-l2-fallback', path: 'fonts/seal/TWSeal-Regular.ttf', kind: 'font', version: '2.0.0', precache: false },
+  // V2-C2 N2.2：隶书字源（D-V2-02 采用，资产待提供，缺失时静默跳过；按需加载，不预缓存）
+  { key: 'li-font', path: 'fonts/li/LiShu-Glyphs.woff2', kind: 'font', version: '2.0.0', precache: false },
+  { key: 'li-map', path: 'fonts/li/li-map.json', kind: 'data', version: '2.0.0', precache: false },
+  { key: 'li-font-fallback', path: 'fonts/li/LiShu-Regular.ttf', kind: 'font', version: '2.0.0', precache: false },
   // 楷体（Arphic UKai）由系统字体或 CDN 提供；Hanzi Writer 笔画数据走独立 CDN（见 lib/fonts.ts）
   // 宋体（Source Han Serif）为可选增强，未随包分发（体积考虑），缺失时回退系统衬线
 ];

@@ -1,5 +1,5 @@
-# N5.1 静态部署配置（纯前端，无服务端）
-# V1-C5：资产缓存命名空间 inkmotion-assets-v2；小篆字库 fonts/seal/* 长缓存。
+# N5.1 / V2-C1 N1.5 静态部署配置（纯前端，无服务端）
+# V2-C1：资产缓存命名空间 inkmotion-assets-v3；小篆字库 fonts/seal/*（含 L0/L1/L2）长缓存。
 
 [[redirects]]
   from = "/*"

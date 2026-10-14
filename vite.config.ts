@@ -20,7 +20,7 @@ export default defineConfig({
     port: 5173,
     host: true,
   },
-  // 资源版本化：字体/纹理/字库经 CDN 以 inkmotion-assets-v2 命名空间托管（N5.1 / IM-DB-001 §6.3）
+  // 资源版本化：字体/纹理/字库经 CDN 以 inkmotion-assets-v3 命名空间托管（N1.5 / IM-DB-001 §6.3）
   // 未配置 VITE_ASSET_CDN 时，资产清单直接引用 public/ 同源路径（见 src/lib/assets.ts）。
   assetsDir: 'assets',
   // 字体/字库一律不内联为 data URI：体积大且需独立缓存与许可随附（OFL.txt）

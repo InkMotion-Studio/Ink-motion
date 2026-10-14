@@ -30,7 +30,7 @@ export function HomePage() {
   return (
     <div className="im-home">
       <section className="im-home__hero">
-        <h1 style={{ fontSize: 'var(--im-fs-3xl)' }}>墨演 InkMotion</h1>
+        <h1 style={{ fontSize: 'var(--im-fs-3xl)' }}>{t('home.brand')}</h1>
         <p style={{ color: 'var(--im-color-ink-soft)', maxWidth: 640 }}>{t('app.tagline')}</p>
         <div style={{ display: 'flex', gap: 'var(--im-space-3)', marginTop: 'var(--im-space-4)' }}>
           <Button variant="primary" size="lg" onClick={startBlank}>
@@ -91,7 +91,7 @@ export function HomePage() {
             {recent.slice(0, 6).map((p) => (
               <Card key={p.id}>
                 {p.thumbnail ? (
-                  <img className="im-proj-thumb" src={p.thumbnail} alt={`${p.title} 缩略图`} />
+                  <img className="im-proj-thumb" src={p.thumbnail} alt={`${p.title} ${t('home.thumbAlt')}`} />
                 ) : (
                   <div
                     className="im-preset-cover im-proj-thumb--empty"
@@ -105,7 +105,7 @@ export function HomePage() {
                   {p.title}
                 </h3>
                 <p style={{ color: 'var(--im-color-ink-faint)', fontSize: 'var(--im-fs-sm)' }}>
-                  {p.text.length > 20 ? p.text.slice(0, 20) + '…' : p.text || '（空）'}
+                  {p.text.length > 20 ? p.text.slice(0, 20) + '…' : p.text || t('home.textEmpty')}
                 </p>
                 <Button variant="ghost" size="sm" onClick={() => navigate(`/editor/${p.id}`)}>
                   {t('action.open')}

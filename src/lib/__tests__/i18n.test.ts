@@ -48,6 +48,47 @@ describe('i18n 骨架（N2.2）', () => {
       expect(MESSAGES_ZH[k], `缺词条 ${k}`).toBeDefined();
     }
   });
+
+  // V2-C3 N3.1/N3.2：插值、占位符一致性与硬编码清理后的键覆盖
+  it('translate 支持 {var} 变量插值（中英一致）', () => {
+    expect(translate('projects.deleteBody', 'zh', { title: '登鹳雀楼' })).toContain('登鹳雀楼');
+    expect(translate('projects.deleteBody', 'en', { title: 'On the Stork Tower' })).toContain(
+      'On the Stork Tower',
+    );
+    expect(translate('projects.deleteBody', 'zh')).toContain('{title}'); // 未传参保留占位
+  });
+
+  it('占位符集合在中英两侧完全一致', () => {
+    const ph = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join(',');
+    const merged = getMessages();
+    for (const [key, entry] of Object.entries(merged)) {
+      expect(ph(entry.zh), `${key} 占位符不一致`).toBe(ph(entry.en));
+    }
+  });
+
+  it('N3.2 硬编码抽取后的新词条均已双语登记', () => {
+    const extracted = [
+      'projects.title',
+      'projects.deleteBody',
+      'options.carrierLegend',
+      'options.canvas.2160',
+      'font.manage',
+      'seal.panelTitle',
+      'li.panelPending',
+      'export.title',
+      'about.fontLicenseTitle',
+      'settings.storageUsage',
+      'preview.play',
+      'a11y.close',
+      'font.attr.seal',
+    ];
+    const merged = getMessages();
+    for (const k of extracted) {
+      expect(merged[k], `缺词条 ${k}`).toBeDefined();
+      expect(merged[k].zh, `${k} 缺 zh`).toBeTruthy();
+      expect(merged[k].en, `${k} 缺 en`).toBeTruthy();
+    }
+  });
 });
 
 describe('主题与语言设置（N2.1）', () => {
@@ -58,9 +99,10 @@ describe('主题与语言设置（N2.1）', () => {
     expect(seal.path).toBe('seal-restricted');
   });
 
-  it('字体目录三路径齐全（楷/宋/小篆）', () => {
+  it('字体目录五路径齐全（楷/宋/毛笔楷/小篆/隶书）', () => {
+    // V2-C4 N4.2：新增 brush（马善政毛笔楷），故由四路径扩为五路径
     const fams = FONT_CATALOG.map((f) => f.family);
-    expect(fams).toEqual(['kai', 'song', 'seal']);
+    expect(fams).toEqual(['kai', 'song', 'brush', 'seal', 'li']);
   });
 });
 
@@ -82,7 +124,7 @@ describe('模板库（N2.3）', () => {
 
   it('模板字体值均在合法范围内', () => {
     for (const t of PRESET_TEMPLATES) {
-      expect(['kai', 'song', 'seal']).toContain(t.options.fontFamily);
+      expect(['kai', 'song', 'seal', 'li']).toContain(t.options.fontFamily);
     }
   });
 });

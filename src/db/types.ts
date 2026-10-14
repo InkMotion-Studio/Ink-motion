@@ -1,6 +1,7 @@
 // 数据模型类型（IM-DB-001 §4–§5）。纯前端：全部存于 IndexedDB，文本永不上传。
 
-export type FontFamily = 'kai' | 'song' | 'seal'; // 楷 / 宋 / 小篆（V1.0 古文字受限字库）
+// V2-C4 N4.2：新增 brush（马善政毛笔楷）；v2 为 kai/song/seal/li，v3 追加 brush（向后兼容）
+export type FontFamily = 'kai' | 'song' | 'brush' | 'seal' | 'li';
 export type CarrierType = 'paper' | 'bamboo'; // 宣纸卷轴 / 竹简
 
 /** 渲染与导出参数（编辑器参数面板的唯一真相来源） */
@@ -15,6 +16,13 @@ export interface ProjectOptions {
   framerate: number; // 导出帧率
   width: number; // 画布宽（竖屏默认 1080）
   height: number; // 画布高（竖屏默认 1920）
+  /** V2-C2 N2.3：沿字形轮廓一次性描绘显现（仅 seal/li 受限字库路径生效）；默认关闭 */
+  outlineAnimation?: boolean;
+  /**
+   * V2-C4 N4.1：自定义/上传字体记录 id（指向 IndexedDB `fonts` 表）。
+   * 设置后，渲染走该字体的真实字形（整字显现），fontFamily 仅作为回退与分组依据。
+   */
+  customFontId?: string;
 }
 
 export const DEFAULT_OPTIONS: ProjectOptions = {
@@ -28,6 +36,7 @@ export const DEFAULT_OPTIONS: ProjectOptions = {
   framerate: 30,
   width: 1080,
   height: 1920,
+  outlineAnimation: false,
 };
 
 export interface Project {

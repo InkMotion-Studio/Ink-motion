@@ -6,6 +6,7 @@ import {
   THIRD_PARTY_LICENSES,
   attributionRequiredEntries,
   bundledLicenseFiles,
+  pendingAuthorizationEntries,
 } from '@/lib/licenses';
 import { versionString } from '@/lib/version';
 
@@ -14,12 +15,13 @@ export function AboutPage() {
   const required = attributionRequiredEntries();
   const optional = THIRD_PARTY_LICENSES.filter((l) => !l.attributionRequired);
   const bundled = bundledLicenseFiles();
+  const pending = pendingAuthorizationEntries();
   return (
     <div style={{ maxWidth: 760 }}>
       <h1 style={{ fontSize: 'var(--im-fs-2xl)' }}>{t('nav.about')}</h1>
 
       <Card style={{ marginBottom: 'var(--im-space-4)' }}>
-        <h2 className="im-card__title">墨演 InkMotion</h2>
+        <h2 className="im-card__title">{t('home.brand')}</h2>
         <p style={{ color: 'var(--im-color-ink-soft)', fontSize: 'var(--im-fs-sm)' }}>
           {t('app.tagline')}
         </p>
@@ -29,7 +31,7 @@ export function AboutPage() {
       </Card>
 
       <Card style={{ marginBottom: 'var(--im-space-4)' }}>
-        <h2 className="im-card__title">字体许可与署名（IM-UI-001 §6.5.1 / IM-API-001 §5.1）</h2>
+        <h2 className="im-card__title">{t('about.fontLicenseTitle')}</h2>
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
           {FONT_CATALOG.map((f) => (
             <li
@@ -40,25 +42,25 @@ export function AboutPage() {
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <strong>{f.label}</strong>
+                <strong>{t(f.labelKey)}</strong>
                 <span
                   style={{
                     fontSize: 'var(--im-fs-xs)',
                     color: f.available ? 'var(--im-color-success)' : 'var(--im-color-danger)',
                   }}
                 >
-                  {f.available ? f.license : '阻塞·未就绪'}
+                  {f.available ? f.license : t('about.blocked')}
                 </span>
               </div>
               <p style={{ color: 'var(--im-color-ink-soft)', fontSize: 'var(--im-fs-sm)', margin: '4px 0' }}>
-                {f.attribution}
+                {t(f.attributionKey)}
               </p>
               <a href={f.licenseUrl} target="_blank" rel="noreferrer" style={{ fontSize: 'var(--im-fs-xs)' }}>
                 {t('about.licenseText')}
               </a>
-              {f.note && (
+              {f.noteKey && (
                 <p style={{ color: 'var(--im-color-danger)', fontSize: 'var(--im-fs-xs)', margin: '4px 0 0' }}>
-                  {f.note}
+                  {t(f.noteKey)}
                 </p>
               )}
             </li>
@@ -74,11 +76,52 @@ export function AboutPage() {
             {bundled.map((b) => (
               <li key={b.path}>
                 <a href={b.path} target="_blank" rel="noreferrer">
-                  {b.name} — OFL.txt（随包发布）
+                  {t('about.bundledItem', { name: b.name })}
                 </a>
               </li>
             ))}
           </ul>
+        </Card>
+      )}
+
+      {/* V2-C1 N1.3 / D-V2-02：授权待办登记册（已采用、待后续联系获取授权） */}
+      {pending.length > 0 && (
+        <Card style={{ marginBottom: 'var(--im-space-4)' }}>
+          <h2 className="im-card__title">{t('about.pendingLicense')}</h2>
+          <p style={{ color: 'var(--im-color-ink-faint)', fontSize: 'var(--im-fs-xs)', marginTop: 0 }}>
+            {t('about.pendingLicense.note')}
+          </p>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            {pending.map((l) => (
+              <li
+                key={l.name}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: 'var(--im-space-3)',
+                  padding: 'var(--im-space-2) 0',
+                  borderBottom: '1px solid var(--im-color-line)',
+                  fontSize: 'var(--im-fs-sm)',
+                }}
+              >
+                <span>{l.name}</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--im-space-2)' }}>
+                  <span style={{ color: 'var(--im-color-warning)', fontSize: 'var(--im-fs-xs)' }}>
+                    {l.license} · {t('about.pending')}
+                  </span>
+                  <a href={l.url} target="_blank" rel="noreferrer" style={{ fontSize: 'var(--im-fs-xs)' }}>
+                    {t('about.licenseText')}
+                  </a>
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p style={{ color: 'var(--im-color-ink-faint)', fontSize: 'var(--im-fs-xs)', marginBottom: 0 }}>
+            <a href="/PENDING-LICENSES.md" target="_blank" rel="noreferrer">
+              {t('about.pendingLicense.full')}
+            </a>
+          </p>
         </Card>
       )}
 

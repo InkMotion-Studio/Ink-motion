@@ -4,6 +4,7 @@ import { detectCapabilities, exportVideo, ExportAbortError, type ExportCapabilit
 import { projectToScene } from '@/lib/sceneFactory';
 import { planPerformance, subsetAdvice } from '@/lib/perf';
 import { putExport } from '@/db/database';
+import { useT } from '@/lib/useI18n';
 import type { Project } from '@/db/types';
 
 interface ExportDialogProps {
@@ -24,6 +25,7 @@ interface ExportState {
 }
 
 export function ExportDialog({ open, project, onClose, onFrame }: ExportDialogProps) {
+  const t = useT();
   const [caps, setCaps] = useState<ExportCapabilities | null>(null);
   const [state, setState] = useState<ExportState>({ status: 'idle', progress: 0 });
   const urlRef = useRef<string | null>(null);
@@ -90,15 +92,15 @@ export function ExportDialog({ open, project, onClose, onFrame }: ExportDialogPr
         sizeBytes: result.sizeBytes,
         durationMs: result.durationMs,
       });
-      toast.success(`导出完成（${result.format.toUpperCase()}）`);
+      toast.success(t('export.done', { format: result.format.toUpperCase() }));
     } catch (e) {
       const isAbort = e instanceof ExportAbortError || (e as Error).name === 'AbortError';
       setState({
         status: 'error',
         progress: 0,
-        message: isAbort ? '已取消导出' : (e as Error).message,
+        message: isAbort ? t('export.cancelledToast') : (e as Error).message,
       });
-      if (isAbort) toast.success('已取消导出');
+      if (isAbort) toast.success(t('export.cancelledToast'));
     } finally {
       abortRef.current = null;
     }
@@ -113,38 +115,38 @@ export function ExportDialog({ open, project, onClose, onFrame }: ExportDialogPr
   return (
     <Modal
       open={open}
-      title="导出视频"
+      title={t('export.title')}
       onClose={onClose}
       footer={
         state.status === 'done' ? (
           <Button variant="primary" onClick={onClose}>
-            完成
+            {t('export.doneBtn')}
           </Button>
         ) : state.status === 'running' ? (
           <>
             <Button variant="ghost" onClick={cancel}>
-              取消导出
+              {t('export.cancelExport')}
             </Button>
             <Button variant="primary" loading disabled>
-              导出中…
+              {t('export.exporting')}
             </Button>
           </>
         ) : state.status === 'error' ? (
           <>
             <Button variant="ghost" onClick={onClose}>
-              关闭
+              {t('export.close')}
             </Button>
             <Button variant="primary" onClick={run}>
-              重试
+              {t('export.retryBtn')}
             </Button>
           </>
         ) : (
           <>
             <Button variant="ghost" onClick={onClose}>
-              取消
+              {t('export.cancelBtn')}
             </Button>
             <Button variant="primary" onClick={run}>
-              开始导出
+              {t('export.start')}
             </Button>
           </>
         )
@@ -153,12 +155,12 @@ export function ExportDialog({ open, project, onClose, onFrame }: ExportDialogPr
       {caps && (
         <div style={{ marginBottom: 'var(--im-space-4)' }}>
           <p style={{ fontSize: 'var(--im-fs-sm)', color: 'var(--im-color-ink-soft)' }}>
-            推荐格式：<strong>{caps.recommended.toUpperCase()}</strong>
-            （WebM 保底 / MP4 增强，自动降级）
+            {t('export.recommendFormat')}<strong>{caps.recommended.toUpperCase()}</strong>
+            {t('export.capNote')}
           </p>
           <p style={{ fontSize: 'var(--im-fs-xs)', color: 'var(--im-color-ink-faint)' }}>
-            WebM（MediaRecorder）：{caps.webm ? '可用' : '不可用'} · WebCodecs MP4：
-            {caps.webcodecsMp4 ? '可用' : '不可用'}
+            {t('export.capWebm')}{caps.webm ? t('export.available') : t('export.unavailable')} · {t('export.capMp4')}
+            {caps.webcodecsMp4 ? t('export.available') : t('export.unavailable')}
           </p>
           {(() => {
             const plan = planPerformance(
@@ -171,7 +173,8 @@ export function ExportDialog({ open, project, onClose, onFrame }: ExportDialogPr
               <>
                 {plan.note && (
                   <p style={{ fontSize: 'var(--im-fs-xs)', color: 'var(--im-color-warning)' }}>
-                    {plan.note}（导出帧率 {plan.framerate} fps）
+                    {plan.note}
+                    {t('export.framerateSuffix', { fps: plan.framerate })}
                   </p>
                 )}
                 {advice && (
@@ -191,7 +194,7 @@ export function ExportDialog({ open, project, onClose, onFrame }: ExportDialogPr
             <div className="im-preview__fill" style={{ width: `${Math.round(state.progress * 100)}%` }} />
           </div>
           <p style={{ fontSize: 'var(--im-fs-sm)', marginTop: 8 }}>
-            导出中… {Math.round(state.progress * 100)}%
+            {t('export.progress', { p: Math.round(state.progress * 100) })}
           </p>
         </div>
       )}
@@ -199,16 +202,16 @@ export function ExportDialog({ open, project, onClose, onFrame }: ExportDialogPr
       {state.status === 'done' && (
         <div>
           <p style={{ fontSize: 'var(--im-fs-sm)', color: 'var(--im-color-success)' }}>
-            导出成功：{state.format?.toUpperCase()} · {fmtSize(state.sizeBytes)}
+            {t('export.success', { format: state.format?.toUpperCase() ?? '', size: fmtSize(state.sizeBytes) })}
           </p>
           {state.url && (
             <a
               className="im-btn im-btn--primary im-btn--md"
               href={state.url}
-              download={`inkmotion-${project.title || '作品'}.${state.format}`}
+              download={`inkmotion-${project.title || t('export.defaultTitle')}.${state.format}`}
               style={{ display: 'inline-flex', marginTop: 12, textDecoration: 'none' }}
             >
-              下载视频
+              {t('export.download')}
             </a>
           )}
         </div>
@@ -216,7 +219,7 @@ export function ExportDialog({ open, project, onClose, onFrame }: ExportDialogPr
 
       {state.status === 'error' && (
         <p style={{ fontSize: 'var(--im-fs-sm)', color: 'var(--im-color-danger)' }}>
-          导出失败：{state.message}
+          {t('export.fail', { msg: state.message ?? '' })}
         </p>
       )}
     </Modal>

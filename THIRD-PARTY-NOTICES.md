@@ -2,22 +2,26 @@
 
 > 墨演 InkMotion V1.0 · 应用代码采用 **Apache-2.0**（见 `LICENSE` 与 `NOTICE`）。
 > 本文件列出随包分发或运行期依赖的第三方字体与开源组件，遵循各自许可。真源：`src/lib/licenses.ts`（关于页同表渲染）。
-> 更新日期：2026-10-14（V1-C5 N5.2）
+> 更新日期：2026-10-14（V2-C4 N4.2 内置开源中文字库）
 
 ## 一、字体（须可见署名）
 
 | 字体 | 许可 | 用途 | 许可全文 | 随包许可文件 |
 |---|---|---|---|---|
-| 文鼎楷体 UKai（Arphic UKai） | Arphic Public License | 楷体路径字形；Hanzi Writer 笔顺数据来源 | https://www.arphic.com.tw/ | 否（系统/CDN 提供） |
-| 思源宋体 Source Han Serif | SIL OFL 1.1 | 宋体路径字形（缺失回退系统衬线） | https://scripts.sil.org/OFL | 否（缺失时回退） |
+| **霞鹜文楷 LXGW WenKai Lite** | SIL OFL 1.1 | 楷体路径字形；**随包 103 片 webfont**（25694 字形，按 unicode-range 按需下载） | https://scripts.sil.org/OFL | **是** — `public/fonts/builtin/` |
+| **思源宋体 Noto Serif SC / Source Han Serif** | SIL OFL 1.1 | 宋体路径字形；**随包分片 webfont**（30928 字形），不再依赖系统字体 | https://scripts.sil.org/OFL | **是** — `public/fonts/builtin/` |
+| **马善政毛笔楷 Ma Shan Zheng** | SIL OFL 1.1 | 毛笔楷路径字形（V2-C4 新增）；随包分片 webfont（5959 字形） | https://scripts.sil.org/OFL | **是** — `public/fonts/builtin/` |
 | 霞鹜篆书 LXGW Seal | SIL OFL 1.1 | 小篆路径字形（受限字库，Unicode 18.0 小篆码位 U+3D000+） | https://scripts.sil.org/OFL | **是** — `public/fonts/seal/OFL.txt` |
+| 文鼎楷体 UKai | Arphic Public License | Hanzi Writer 笔顺数据来源（V2-C4 起字形改用霞鹜文楷） | https://www.arphic.com.tw/ | 否（CDN 提供） |
+| 阿里妈妈刀隶体 | 免费商用（阿里妈妈平台条款） | 隶书路径字形（真隶书，6763 字）；**资产待手动取件**，当前回退系统隶书族 | 待登记 | 待随包 |
 
 **合规动作（已完成）：**
 
 1. 「关于」页字体许可卡片逐条展示字体、许可标识与署名文案（IM-UI-001 §6.5.1）。
 2. 「关于」页「随包许可文本」卡片提供 OFL.txt 本地查阅入口（随分发保留许可全文）。
-3. 霞鹜篆书保留字体名称「霞鹜 / LXGW」，不作改名分发（OFL 保留字体名要求）。
-4. 字库子集化产物 `LXGWSeal-Glyphs.woff2`（42KB）由完整 TTF（223KB）经 pyftsubset 生成，仍属同一 OFL 授权的衍生使用。
+3. 全部随包字体保留原字体名称（霞鹜 / LXGW / Noto / Ma Shan Zheng），不作改名分发（OFL 保留字体名要求）。
+4. 分片 webfont 由完整 TTF 经 `pyftsubset` 生成（`scripts/build-fonts.py`），按 unicode-range 切分，仍属同一 OFL 授权的衍生使用；浏览器仅下载页面实际用到的片。
+5. **隶书字源（V2-C2/V2-C4 N4.3）**：依用户决策 D-V2-02，对评估范围内隶书字源**一律采用**；但公开渠道无合规开源隶书直链，阿里妈妈刀隶体仅走官网发布，故登记于「字体授权待办登记册」（`PENDING-LICENSES.md`）**待手动取件**。当前隶书**如实标注为依赖系统字体**（UI 文案 `font.note.li`），不假装支持。
 
 ## 二、运行期开源组件
 

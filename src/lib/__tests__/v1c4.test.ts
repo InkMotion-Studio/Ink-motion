@@ -83,8 +83,9 @@ describe('上传字体生命周期（FONT-03 / FONT-04 / FONT-10）', () => {
   });
 
   it('损坏/非法文件在上层被拒绝（FONT-06 / FONT-07 前置）', () => {
-    expect(validateFontFile({ name: 'bad.exe', size: 100 })).toMatch(/不支持的字体格式/);
-    expect(validateFontFile({ name: 'zero.ttf', size: 0 })).toBe('文件为空');
+    // V2-C4 N4.1：错误文案改为 i18n 错误码（由 UI 本地化呈现）
+    expect(validateFontFile({ name: 'bad.exe', size: 100 })).toBe('font.err.format');
+    expect(validateFontFile({ name: 'zero.ttf', size: 0 })).toBe('font.err.empty');
   });
 });
 
@@ -147,13 +148,14 @@ const mapPath = resolve(process.cwd(), 'public/fonts/seal/seal-map.json');
 });
 
 // ===== TC-V1-GLY-10 渲染路径互不干扰 =====
-describe('三路径互不干扰（GLY-10）', () => {
-  it('字体目录三路径齐全且各自路径标识不同', () => {
+describe('多路径互不干扰（GLY-10 / V2-C2）', () => {
+  it('字体目录四路径齐全且各自路径标识不同', () => {
     const paths = FONT_CATALOG.map((f) => f.path);
-    expect(new Set(paths).size).toBe(3);
+    expect(new Set(paths).size).toBe(4);
     expect(paths).toContain('hanzi-writer');
     expect(paths).toContain('whole');
     expect(paths).toContain('seal-restricted');
+    expect(paths).toContain('li-restricted');
   });
 
   it('每路径均有许可信息与可用状态', () => {
@@ -171,7 +173,7 @@ describe('古文字限制告知（GLY-11）', () => {
   it('帮助页文案明确"不提供逐笔书写"（中英双语）', async () => {
     expect(translate('help.seal', 'zh')).toMatch(/不提供逐笔书写/);
     await loadLang('en'); // 英文包按需加载
-    expect(translate('help.seal', 'en')).toMatch(/no stroke animation/);
+    expect(translate('help.seal', 'en')).toMatch(/no stroke-by-stroke writing/);
   });
 
   it('越界提示文案含"自动跳过"语义', () => {

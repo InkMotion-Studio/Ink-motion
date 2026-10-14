@@ -12,16 +12,20 @@ export function HelpPage() {
         <h2 className="im-card__title">{t('help.fontPaths')}</h2>
         <ul style={{ margin: 0, paddingLeft: '1.2em', color: 'var(--im-color-ink-soft)', fontSize: 'var(--im-fs-sm)', lineHeight: 1.7 }}>
           <li>
-            <strong>楷体：</strong>
+            <strong>{t('template.kai')}：</strong>
             {t('help.kai')}
           </li>
           <li>
-            <strong>宋体：</strong>
+            <strong>{t('template.song')}：</strong>
             {t('help.song')}
           </li>
           <li>
-            <strong>小篆：</strong>
+            <strong>{t('template.seal')}：</strong>
             {t('help.seal')}
+          </li>
+          <li>
+            <strong>{t('template.li')}：</strong>
+            {t('help.li')}
           </li>
         </ul>
       </Card>

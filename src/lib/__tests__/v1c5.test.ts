@@ -69,10 +69,11 @@ describe('V1-C5 N5.1 资产命名空间与缓存版本化', () => {
   beforeEach(() => installCaches());
   afterEach(() => vi.unstubAllGlobals());
 
-  it('TC-V1-OPS-01 资产命名空间与缓存名升至 v2', () => {
-    expect(ASSET_NAMESPACE).toBe('inkmotion-assets-v2');
-    expect(ASSET_CACHE_NAME).toBe('inkmotion-assets-v2');
+  it('TC-V1-OPS-01 资产命名空间与缓存名升至 v3（V2-C1 N1.5 由 v2 升级）', () => {
+    expect(ASSET_NAMESPACE).toBe('inkmotion-assets-v3');
+    expect(ASSET_CACHE_NAME).toBe('inkmotion-assets-v3');
     expect(LEGACY_ASSET_CACHE_NAMES).toContain('inkmotion-assets-v1');
+    expect(LEGACY_ASSET_CACHE_NAMES).toContain('inkmotion-assets-v2');
   });
 
   it('TC-V1-OPS-02 资产清单登记小篆字库三项（字体/字表/许可）', () => {
@@ -110,18 +111,19 @@ describe('V1-C5 N5.1 资产命名空间与缓存版本化', () => {
     expect(SEAL_OFL_URL).toBe(assetUrl('seal-license'));
   });
 
-  it('TC-V1-OPS-07 版本升级清理历史缓存（v1 删除、v2 保留）', async () => {
-    installCaches(['inkmotion-assets-v1', 'inkmotion-assets-v2']);
+  it('TC-V1-OPS-07 版本升级清理历史缓存（v1/v2 删除、v3 保留）', async () => {
+    installCaches(['inkmotion-assets-v1', 'inkmotion-assets-v2', 'inkmotion-assets-v3']);
     const removed = await purgeLegacyAssetCaches();
-    expect(removed).toEqual(['inkmotion-assets-v1']);
+    expect(removed).toEqual(['inkmotion-assets-v1', 'inkmotion-assets-v2']);
     const left = await listAssetCaches();
-    expect(left).toContain('inkmotion-assets-v2');
+    expect(left).toContain('inkmotion-assets-v3');
     expect(left).not.toContain('inkmotion-assets-v1');
+    expect(left).not.toContain('inkmotion-assets-v2');
   });
 
   it('TC-V1-OPS-08 当前版本缓存永不被清理', async () => {
-    installCaches(['inkmotion-assets-v2']);
-    const removed = await purgeLegacyAssetCaches(['inkmotion-assets-v2']);
+    installCaches([ASSET_CACHE_NAME]);
+    const removed = await purgeLegacyAssetCaches([ASSET_CACHE_NAME]);
     expect(removed).toEqual([]);
   });
 
@@ -139,7 +141,7 @@ describe('V1-C5 N5.1 资产命名空间与缓存版本化', () => {
     expect(ok).toBe(expected);
     // 旧缓存已被清理
     expect(await listAssetCaches()).not.toContain('inkmotion-assets-v1');
-    expect(store.get('inkmotion-assets-v2')?.has('/fonts/seal/LXGWSeal-Glyphs.woff2')).toBe(true);
+    expect(store.get(ASSET_CACHE_NAME)?.has('/fonts/seal/LXGWSeal-Glyphs.woff2')).toBe(true);
   });
 
   it('TC-V1-OPS-10 单个资产失败不阻断其余（可选增强降级）', async () => {
@@ -172,11 +174,16 @@ describe('V1-C5 N5.2 许可合规登记', () => {
     }
   });
 
-  it('TC-V1-LIC-02 OFL 许可文本随包分发（bundled 指向 OFL.txt）', () => {
+  it('TC-V1-LIC-02 OFL 许可文本随包分发（bundled 指向许可文件）', () => {
+    // V2-C4 N4.2：内置三款 OFL 字体后，bundled 列表含 fonts.css（统一 OFL 声明）
+    // 与 seal/OFL.txt（篆书许可全文），此处校验至少存在一个随包许可文件且指向本地资源
     const bundled = bundledLicenseFiles();
     expect(bundled.length).toBeGreaterThanOrEqual(1);
-    expect(bundled[0].path).toBe('/fonts/seal/OFL.txt');
-    expect(bundled[0].name).toMatch(/LXGW|霞鹜/);
+    for (const b of bundled) {
+      expect(b.path).toMatch(/^\/fonts\//);
+    }
+    expect(bundled.some((b) => b.path === '/fonts/seal/OFL.txt')).toBe(true);
+    expect(bundled.some((b) => b.name.match(/LXGW|霞鹜/))).toBe(true);
   });
 
   it('TC-V1-LIC-03 许可条目字段完整（名称/许可/链接/用途/分类）', () => {

@@ -14,6 +14,7 @@ export function projectToScene(project: Project): Scene {
     backgroundColor: o.backgroundColor,
     writingSpeed: o.writingSpeed,
     scrollEnabled: o.scrollEnabled,
+    outlineAnimation: o.outlineAnimation,
   };
   return new Scene(opts);
 }

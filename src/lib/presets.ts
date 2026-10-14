@@ -39,4 +39,12 @@ export const PRESET_TEMPLATES: PresetTemplate[] = [
     options: { carrier: 'paper', fontFamily: 'seal' },
     cover: '宣纸 · 篆',
   },
+  // V2-C2：新增隶书受限字库模板（字表随版本扩充，缺失时系统隶书族兜底）
+  {
+    id: 'preset-jingyesi-li',
+    title: '静夜思 · 宣纸隶书',
+    text: '床前明月光，疑是地上霜。举头望明月，低头思故乡。',
+    options: { carrier: 'paper', fontFamily: 'li' },
+    cover: '宣纸 · 隶',
+  },
 ];

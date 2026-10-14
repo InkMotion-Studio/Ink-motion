@@ -30,7 +30,7 @@
   --im-color-gold-soft: #d4af37;
 
   --im-color-success: #3f7d4e;
-  --im-color-warning: #b8860b;
+  --im-color-warning: #7a5c07; /* 深金褐：浅色底上对比度 ≥ 4.5:1（A11Y 修复，V2-C2） */
   --im-color-danger: #9e2b25;
 
   /* 载体预览用（引擎消费） */

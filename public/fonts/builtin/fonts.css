@@ -1,0 +1,833 @@
+/* 自动生成：V2-C4 N4.2 内置开源中文字体（scripts/build-fonts.py）
+ * 按 unicode-range 分片，浏览器仅下载页面实际用到的片。
+ * 全部 OFL 1.1，署名见 THIRD-PARTY-NOTICES.md。 */
+
+/* LXGW WenKai */
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-latin.woff2') format('woff2');
+  unicode-range: U+0020-U+00FF;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-punct.woff2') format('woff2');
+  unicode-range: U+2000-U+206F;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjkpunct.woff2') format('woff2');
+  unicode-range: U+3000-U+303F;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-fullwidth.woff2') format('woff2');
+  unicode-range: U+FF00-U+FFEF;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjk4E00.woff2') format('woff2');
+  unicode-range: U+4E00-U+51E7;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjk51E8.woff2') format('woff2');
+  unicode-range: U+51E8-U+55CF;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjk55D0.woff2') format('woff2');
+  unicode-range: U+55D0-U+59B7;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjk59B8.woff2') format('woff2');
+  unicode-range: U+59B8-U+5D9F;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjk5DA0.woff2') format('woff2');
+  unicode-range: U+5DA0-U+6187;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjk6188.woff2') format('woff2');
+  unicode-range: U+6188-U+656F;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjk6570.woff2') format('woff2');
+  unicode-range: U+6570-U+6957;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjk6958.woff2') format('woff2');
+  unicode-range: U+6958-U+6D3F;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjk6D40.woff2') format('woff2');
+  unicode-range: U+6D40-U+7127;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjk7128.woff2') format('woff2');
+  unicode-range: U+7128-U+750F;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjk7510.woff2') format('woff2');
+  unicode-range: U+7510-U+78F7;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjk78F8.woff2') format('woff2');
+  unicode-range: U+78F8-U+7CDF;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjk7CE0.woff2') format('woff2');
+  unicode-range: U+7CE0-U+80C7;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjk80C8.woff2') format('woff2');
+  unicode-range: U+80C8-U+84AF;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjk84B0.woff2') format('woff2');
+  unicode-range: U+84B0-U+8897;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjk8898.woff2') format('woff2');
+  unicode-range: U+8898-U+8C7F;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjk8C80.woff2') format('woff2');
+  unicode-range: U+8C80-U+9067;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjk9068.woff2') format('woff2');
+  unicode-range: U+9068-U+944F;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjk9450.woff2') format('woff2');
+  unicode-range: U+9450-U+9837;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjk9838.woff2') format('woff2');
+  unicode-range: U+9838-U+9C1F;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjk9C20.woff2') format('woff2');
+  unicode-range: U+9C20-U+9FFF;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjkA3400.woff2') format('woff2');
+  unicode-range: U+3400-U+35F3;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjkA35F4.woff2') format('woff2');
+  unicode-range: U+35F4-U+37E7;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjkA37E8.woff2') format('woff2');
+  unicode-range: U+37E8-U+39DB;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjkA39DC.woff2') format('woff2');
+  unicode-range: U+39DC-U+3BCF;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjkA3BD0.woff2') format('woff2');
+  unicode-range: U+3BD0-U+3DC3;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjkA3DC4.woff2') format('woff2');
+  unicode-range: U+3DC4-U+3FB7;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjkA3FB8.woff2') format('woff2');
+  unicode-range: U+3FB8-U+41AB;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjkA41AC.woff2') format('woff2');
+  unicode-range: U+41AC-U+439F;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjkA43A0.woff2') format('woff2');
+  unicode-range: U+43A0-U+4593;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjkA4594.woff2') format('woff2');
+  unicode-range: U+4594-U+4787;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjkA4788.woff2') format('woff2');
+  unicode-range: U+4788-U+497B;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjkA497C.woff2') format('woff2');
+  unicode-range: U+497C-U+4B6F;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjkA4B70.woff2') format('woff2');
+  unicode-range: U+4B70-U+4D63;
+}
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/lxgw-wenkai-lite-cjkA4D64.woff2') format('woff2');
+  unicode-range: U+4D64-U+4DBF;
+}
+
+/* Noto Serif SC */
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-latin.woff2') format('woff2');
+  unicode-range: U+0020-U+00FF;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-punct.woff2') format('woff2');
+  unicode-range: U+2000-U+206F;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjkpunct.woff2') format('woff2');
+  unicode-range: U+3000-U+303F;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-fullwidth.woff2') format('woff2');
+  unicode-range: U+FF00-U+FFEF;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjk4E00.woff2') format('woff2');
+  unicode-range: U+4E00-U+51E7;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjk51E8.woff2') format('woff2');
+  unicode-range: U+51E8-U+55CF;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjk55D0.woff2') format('woff2');
+  unicode-range: U+55D0-U+59B7;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjk59B8.woff2') format('woff2');
+  unicode-range: U+59B8-U+5D9F;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjk5DA0.woff2') format('woff2');
+  unicode-range: U+5DA0-U+6187;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjk6188.woff2') format('woff2');
+  unicode-range: U+6188-U+656F;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjk6570.woff2') format('woff2');
+  unicode-range: U+6570-U+6957;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjk6958.woff2') format('woff2');
+  unicode-range: U+6958-U+6D3F;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjk6D40.woff2') format('woff2');
+  unicode-range: U+6D40-U+7127;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjk7128.woff2') format('woff2');
+  unicode-range: U+7128-U+750F;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjk7510.woff2') format('woff2');
+  unicode-range: U+7510-U+78F7;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjk78F8.woff2') format('woff2');
+  unicode-range: U+78F8-U+7CDF;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjk7CE0.woff2') format('woff2');
+  unicode-range: U+7CE0-U+80C7;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjk80C8.woff2') format('woff2');
+  unicode-range: U+80C8-U+84AF;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjk84B0.woff2') format('woff2');
+  unicode-range: U+84B0-U+8897;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjk8898.woff2') format('woff2');
+  unicode-range: U+8898-U+8C7F;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjk8C80.woff2') format('woff2');
+  unicode-range: U+8C80-U+9067;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjk9068.woff2') format('woff2');
+  unicode-range: U+9068-U+944F;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjk9450.woff2') format('woff2');
+  unicode-range: U+9450-U+9837;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjk9838.woff2') format('woff2');
+  unicode-range: U+9838-U+9C1F;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjk9C20.woff2') format('woff2');
+  unicode-range: U+9C20-U+9FFF;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjkA3400.woff2') format('woff2');
+  unicode-range: U+3400-U+35F3;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjkA35F4.woff2') format('woff2');
+  unicode-range: U+35F4-U+37E7;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjkA37E8.woff2') format('woff2');
+  unicode-range: U+37E8-U+39DB;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjkA39DC.woff2') format('woff2');
+  unicode-range: U+39DC-U+3BCF;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjkA3BD0.woff2') format('woff2');
+  unicode-range: U+3BD0-U+3DC3;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjkA3DC4.woff2') format('woff2');
+  unicode-range: U+3DC4-U+3FB7;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjkA3FB8.woff2') format('woff2');
+  unicode-range: U+3FB8-U+41AB;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjkA41AC.woff2') format('woff2');
+  unicode-range: U+41AC-U+439F;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjkA43A0.woff2') format('woff2');
+  unicode-range: U+43A0-U+4593;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjkA4594.woff2') format('woff2');
+  unicode-range: U+4594-U+4787;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjkA4788.woff2') format('woff2');
+  unicode-range: U+4788-U+497B;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjkA497C.woff2') format('woff2');
+  unicode-range: U+497C-U+4B6F;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjkA4B70.woff2') format('woff2');
+  unicode-range: U+4B70-U+4D63;
+}
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/noto-serif-sc-cjkA4D64.woff2') format('woff2');
+  unicode-range: U+4D64-U+4DBF;
+}
+
+/* Ma Shan Zheng */
+@font-face {
+  font-family: 'Ma Shan Zheng';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/ma-shan-zheng-latin.woff2') format('woff2');
+  unicode-range: U+0020-U+00FF;
+}
+@font-face {
+  font-family: 'Ma Shan Zheng';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/ma-shan-zheng-punct.woff2') format('woff2');
+  unicode-range: U+2000-U+206F;
+}
+@font-face {
+  font-family: 'Ma Shan Zheng';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/ma-shan-zheng-cjkpunct.woff2') format('woff2');
+  unicode-range: U+3000-U+303F;
+}
+@font-face {
+  font-family: 'Ma Shan Zheng';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/ma-shan-zheng-fullwidth.woff2') format('woff2');
+  unicode-range: U+FF00-U+FFEF;
+}
+@font-face {
+  font-family: 'Ma Shan Zheng';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/ma-shan-zheng-cjk4E00.woff2') format('woff2');
+  unicode-range: U+4E00-U+51E7;
+}
+@font-face {
+  font-family: 'Ma Shan Zheng';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/ma-shan-zheng-cjk51E8.woff2') format('woff2');
+  unicode-range: U+51E8-U+55CF;
+}
+@font-face {
+  font-family: 'Ma Shan Zheng';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/ma-shan-zheng-cjk55D0.woff2') format('woff2');
+  unicode-range: U+55D0-U+59B7;
+}
+@font-face {
+  font-family: 'Ma Shan Zheng';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/ma-shan-zheng-cjk59B8.woff2') format('woff2');
+  unicode-range: U+59B8-U+5D9F;
+}
+@font-face {
+  font-family: 'Ma Shan Zheng';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/ma-shan-zheng-cjk5DA0.woff2') format('woff2');
+  unicode-range: U+5DA0-U+6187;
+}
+@font-face {
+  font-family: 'Ma Shan Zheng';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/ma-shan-zheng-cjk6188.woff2') format('woff2');
+  unicode-range: U+6188-U+656F;
+}
+@font-face {
+  font-family: 'Ma Shan Zheng';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/ma-shan-zheng-cjk6570.woff2') format('woff2');
+  unicode-range: U+6570-U+6957;
+}
+@font-face {
+  font-family: 'Ma Shan Zheng';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/ma-shan-zheng-cjk6958.woff2') format('woff2');
+  unicode-range: U+6958-U+6D3F;
+}
+@font-face {
+  font-family: 'Ma Shan Zheng';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/ma-shan-zheng-cjk6D40.woff2') format('woff2');
+  unicode-range: U+6D40-U+7127;
+}
+@font-face {
+  font-family: 'Ma Shan Zheng';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/ma-shan-zheng-cjk7128.woff2') format('woff2');
+  unicode-range: U+7128-U+750F;
+}
+@font-face {
+  font-family: 'Ma Shan Zheng';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/ma-shan-zheng-cjk7510.woff2') format('woff2');
+  unicode-range: U+7510-U+78F7;
+}
+@font-face {
+  font-family: 'Ma Shan Zheng';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/ma-shan-zheng-cjk78F8.woff2') format('woff2');
+  unicode-range: U+78F8-U+7CDF;
+}
+@font-face {
+  font-family: 'Ma Shan Zheng';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/ma-shan-zheng-cjk7CE0.woff2') format('woff2');
+  unicode-range: U+7CE0-U+80C7;
+}
+@font-face {
+  font-family: 'Ma Shan Zheng';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/ma-shan-zheng-cjk80C8.woff2') format('woff2');
+  unicode-range: U+80C8-U+84AF;
+}
+@font-face {
+  font-family: 'Ma Shan Zheng';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/ma-shan-zheng-cjk84B0.woff2') format('woff2');
+  unicode-range: U+84B0-U+8897;
+}
+@font-face {
+  font-family: 'Ma Shan Zheng';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/ma-shan-zheng-cjk8898.woff2') format('woff2');
+  unicode-range: U+8898-U+8C7F;
+}
+@font-face {
+  font-family: 'Ma Shan Zheng';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/ma-shan-zheng-cjk8C80.woff2') format('woff2');
+  unicode-range: U+8C80-U+9067;
+}
+@font-face {
+  font-family: 'Ma Shan Zheng';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/ma-shan-zheng-cjk9068.woff2') format('woff2');
+  unicode-range: U+9068-U+944F;
+}
+@font-face {
+  font-family: 'Ma Shan Zheng';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/ma-shan-zheng-cjk9450.woff2') format('woff2');
+  unicode-range: U+9450-U+9837;
+}
+@font-face {
+  font-family: 'Ma Shan Zheng';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/ma-shan-zheng-cjk9838.woff2') format('woff2');
+  unicode-range: U+9838-U+9C1F;
+}
+@font-face {
+  font-family: 'Ma Shan Zheng';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/builtin/ma-shan-zheng-cjk9C20.woff2') format('woff2');
+  unicode-range: U+9C20-U+9FFF;
+}

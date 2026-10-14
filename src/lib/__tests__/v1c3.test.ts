@@ -18,16 +18,17 @@ describe('字体上传校验（N3.1）', () => {
 
   it('拒绝未知格式', () => {
     expect(detectFormat('virus.exe')).toBeNull();
-    expect(validateFontFile({ name: 'virus.exe', size: 1024 })).toMatch(/不支持的字体格式/);
+    // V2-C4 N4.1：错误文案改为 i18n 错误码（由 UI 本地化呈现）
+    expect(validateFontFile({ name: 'virus.exe', size: 1024 })).toBe('font.err.format');
   });
 
   it('拒绝超过体积上限的文件', () => {
     const res = validateFontFile({ name: 'big.ttf', size: FONT_SIZE_LIMIT + 1 });
-    expect(res).toMatch(/过大/);
+    expect(res).toBe('font.err.tooLarge');
   });
 
   it('拒绝空文件', () => {
-    expect(validateFontFile({ name: 'empty.ttf', size: 0 })).toBe('文件为空');
+    expect(validateFontFile({ name: 'empty.ttf', size: 0 })).toBe('font.err.empty');
   });
 
   it('合法文件通过校验', () => {

@@ -54,9 +54,24 @@ export function getMessages(): Record<string, { zh: string; en: string }> {
 /** 旧接口兼容：完整词典视图（英文按需填充） */
 export const MESSAGES = getMessages();
 
-export function translate(key: string, lang: Lang): string {
+/**
+ * 变量插值：将 `{name}` 占位替换为 params.name。
+ * 缺失参数保留原占位（便于开发期发现未传参）。
+ */
+function interpolate(template: string, params?: Record<string, string | number>): string {
+  if (!params) return template;
+  return template.replace(/\{(\w+)\}/g, (m, k: string) =>
+    k in params ? String(params[k]) : m,
+  );
+}
+
+export function translate(
+  key: string,
+  lang: Lang,
+  params?: Record<string, string | number>,
+): string {
   const zh = MESSAGES_ZH[key];
   if (zh === undefined) return key; // 未登记键回退为键名（开发期可见）
-  if (lang === 'zh') return zh;
-  return enPack?.[key] || zh; // 英文未加载/缺失时回退中文
+  if (lang === 'zh') return interpolate(zh, params);
+  return interpolate(enPack?.[key] || zh, params); // 英文未加载/缺失时回退中文
 }

@@ -27,18 +27,18 @@ export default function App() {
   return (
     <div className="im-app">
       <a href="#im-main" className="im-skip-link">
-        跳到主内容
+        {t('a11y.skipToMain')}
       </a>
       <header className="im-topbar">
         {/* 不设 aria-label：可访问名由可见文本 + sr-only 后缀构成，
             避免与可见文本冲突（axe label-content-name-mismatch） */}
         <NavLink to="/" className="im-logo">
-          <span className="im-logo__mark">墨</span>
-          <span className="im-logo__name">墨演 InkMotion</span>
-          <span className="im-sr-only">首页</span>
+          <span className="im-logo__mark" aria-hidden="true">墨</span>
+          <span className="im-logo__name">{t('home.brand')}</span>
+          <span className="im-sr-only">{t('a11y.home')}</span>
         </NavLink>
         {!inEditor && (
-          <nav className="im-topnav" aria-label="主导航">
+          <nav className="im-topnav" aria-label={t('a11y.mainNav')}>
             {NAV.filter((n) => n.to !== '/').map((n) => (
               <NavLink
                 key={n.to}
@@ -51,7 +51,7 @@ export default function App() {
             <button
               type="button"
               className="im-topnav__theme"
-              aria-label={theme === 'dark' ? '切换到浅色主题' : '切换到深色主题'}
+              aria-label={theme === 'dark' ? t('a11y.themeToLight') : t('a11y.themeToDark')}
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             >
               {theme === 'dark' ? '☀' : '☾'}

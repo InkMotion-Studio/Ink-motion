@@ -27,9 +27,9 @@ function distJsContains(needle) {
     .some((f) => readFileSync(join(dir, f), 'utf8').includes(needle));
 }
 check(
-  '构建包内含 inkmotion-assets-v2 命名空间',
-  distJsContains('inkmotion-assets-v2'),
-  'dist/assets/*.js',
+  '构建包内含 inkmotion-assets-v3 命名空间',
+  distJsContains('inkmotion-assets-v3'),
+  'dist/assets/*.js（V2-C1 N1.5 升 v3）',
 );
 check(
   '构建包登记小篆资产路径 fonts/seal/LXGWSeal-Glyphs.woff2',
@@ -77,15 +77,15 @@ await page.reload({ waitUntil: 'networkidle' });
 await page.waitForTimeout(2000);
 const cacheNames = await page.evaluate(async () => (await caches.keys()).filter((n) => n.startsWith('inkmotion-assets-')));
 check('旧版本缓存 v1 已被自动清理', !cacheNames.includes('inkmotion-assets-v1'), cacheNames.join(', '));
-check('当前版本缓存 v2 已建立', cacheNames.includes('inkmotion-assets-v2'), cacheNames.join(', '));
+check('当前版本缓存 v3 已建立', cacheNames.includes('inkmotion-assets-v3'), cacheNames.join(', '));
 
 const cachedUrls = await page.evaluate(async () => {
-  const c = await caches.open('inkmotion-assets-v2');
+  const c = await caches.open('inkmotion-assets-v3');
   const reqs = await c.keys();
   return reqs.map((r) => new URL(r.url).pathname);
 });
 check(
-  'v2 缓存含小篆字体与字表（离线可用）',
+  'v3 缓存含小篆字体与字表（离线可用）',
   cachedUrls.includes('/fonts/seal/LXGWSeal-Glyphs.woff2') && cachedUrls.includes('/fonts/seal/seal-map.json'),
   cachedUrls.join(', '),
 );

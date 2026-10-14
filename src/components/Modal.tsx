@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { useT } from '@/lib/useI18n';
 import './components.css';
 
 export interface ModalProps {
@@ -19,6 +20,7 @@ export function Modal({
   footer,
   closeOnOverlay = true,
 }: ModalProps) {
+  const t = useT();
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -78,7 +80,7 @@ export function Modal({
       >
         <div className="im-modal__head">
           <h2 className="im-modal__title">{title}</h2>
-          <button className="im-modal__close" aria-label="关闭" onClick={onClose}>
+          <button className="im-modal__close" aria-label={t('a11y.close')} onClick={onClose}>
             ×
           </button>
         </div>

@@ -290,7 +290,7 @@ MVP 交付后用户指示"进入下一阶段规划，与 MVP 基本一致的方�
 
 ---
 
-## V1-C5 上线（2026-10-14）— ✅ 已完成，待验收
+## V1-C5 上线（2026-10-14）— ✅ 已完成，已验收通过（2026-10-14）
 
 前序：V1-C4 于 2026-10-13 交付并由用户验收"通过"，随即启动 V1-C5（N5.1 部署更新 / N5.2 许可合规扩展 / N5.3 V1.0 发布）。
 
@@ -331,8 +331,276 @@ MVP 交付后用户指示"进入下一阶段规划，与 MVP 基本一致的方�
 - 英文文案仍为骨架占位、未经母语审校（TBD-V1-05）；本次新增许可/兼容性文案同样未经审校。
 - 古文字仍为受限字库（165 篆字 / 238 今字映射），字源已停止维护（VR-02 持续跟踪）。
 
+### 验收与结项（2026-10-14）
+- 用户于 2026-10-14 对 V1-C5 回复"**通过**"，**V1.0 正式结项**。
+- V1.0 全量门禁（单测 126/126、E2E 7 套件 118/118、发布检查单 22/22、axe 15/15、lint 0 error、构建 gzip 120.62KB）均在交付时实测全绿，验收无需复测即确认。
+- 待确认事项现状：TBD-V1-01（字源选型）、TBD-V1-02（轮廓描边动画）、TBD-V1-03（隶书，推 V1.1）、TBD-V1-05（英文审校）均按"V1.0 不纳入/骨架占位"发布，作为 V1.1 候选；TBD-V1-04 已于 V1-C5 决策闭环。
+
 ### 备份
-`InkMotion-V1-C5-上线-20261014.zip`
+`InkMotion-V1-C5-上线-20261014.zip`（V1.0 最终结项版，含本验收结论）
+
+---
+
+## V2.0 规划阶段（2026-10-14）— 已批准执行
+
+### 背景
+V1.0 于 2026-10-14 正式结项（用户回复"通过"）。用户指示将 V1.0 全部遗留项（TBD-V1-01~05、VR-02、VR-06/VR-10）**统一并入 V2.0** 处理，沿用"先规划 → 批准 → 逐检查点交付 zip"方式推进。
+
+### 关键前提与决策
+- **Unicode 18.0 小篆区块 U+3D000–U+3FC3F** 已发布 → 三层字源均按该码位寻址，得以用"动态字体回退栈"实现零侵入优先级回退。
+- **用户决策（2026-10-14 批准执行）**：
+  1. **L2 全字库（6721 字）纳入 V2.0** —— TBD-V2-01 关闭。
+  2. **合规政策 D-V2-02** —— V2.0 不再以资源合规为功能阻塞，对评估范围内字源**一律采用**；需授权字体统一登记「字体授权待办登记册」（本仓库 `PENDING-LICENSES.md`）后续联系获取授权 —— TBD-V2-02 关闭、VR2-02 降级为"已接受·低"。
+
+### 已交付（4 份规划文档，已批准执行）
+| 文档 | 内容要点 |
+|---|---|
+| `docs/IM-GLYPH-V2-001-古文字能力深化可行性重评估.md`（v1.1） | 多字源分层（L0 霞鹜 + L1 敬峰 + L2 全字库）、隶书、描边动画可行性；L2 已纳入、隶书依 D-V2-02 改"一律采用+登记" |
+| `docs/IM-PLAN-V2-001-V2.0项目计划与排期.md`（v1.1） | 范围、里程碑、5 检查点 / 18 节点（约 30 人周）、发布检查单 V2-C1~C10、TBD-V2-01~05（两项已决策关闭） |
+| `docs/IM-RISK-V2-001-V2.0风险管理计划.md`（v1.1） | 承接 V1.0 风险；VR2-02 由"合规·高·阻塞"降级为"已接受·低（D-V2-02）"，残留跟踪指向登记册 |
+| `docs/IM-TEST-V2-001-V2.0测试计划.md` | TC-V2-* 用例族、发布检查单验证方法 |
+
+### 备份
+`InkMotion-V2.0规划文档-20261014.zip`
+
+---
+
+## V2-C1 落地明细（2026-10-14）— 篆书字源分层扩展 ✅ 已完成（待用户验收）
+
+前序：V1.0 于 2026-10-14 结项；当日用户批准 V2 规划并决策 L2 纳入 + D-V2-02，随即启动 V2-C1（N1.1–N1.5）。
+
+### N1.1 分层篆书引擎（`src/lib/seal.ts` 重构）
+- 三层配置 `SEAL_LAYERS`：L0 霞鹜（保底，OFL-1.1，必装）/ L1 敬峰（主力，OFL，~2832 字，按需）/ L2 全字库（OpenGov-TW，6721 字，按需）。
+- 三层均映射 Unicode 18.0 小篆码位 U+3D000+；**动态字体回退栈**：`getSealFontStack()` 按优先级 L1→L0→L2 组成 ctx.font 字体族，浏览器自动选取首个含该字形码位的字源，零侵入实现优先级回退，避免逐字试绘成本。
+- `loadSealCharset(layer)` 按层加载，资产缺失返回 `null`（静默跳过该层）；`loadSealRegistry(setting)` 按 `layersForSetting` 加载启用层并**优先级去重**合并索引（L1 优先于 L0）；`mergedSealCharset()` 产出向后兼容的 `SealCharset`。
+- 保留全部 V1.0 向后兼容导出（常量、函数签名），既有渲染/测试不受影响。
+
+### N1.2 合并映射与覆盖率预估引擎
+- `estimateSealCoverage(text, reg)`：返回 `{total, covered, ratio, layers}`（GV-V2-04）。
+- `src/lib/useSeal.ts`：`useSealCoverage` / `useSealOutOfRange`（基于合并注册表，替代旧单字表逻辑）；`computeOutOfRangeV2`。
+
+### N1.3 L1/L2 字源集成脚手架与授权登记册
+- `src/lib/assets.ts`：资产清单新增 L1/L2 资产（`seal-font-l1/-l1-fallback/-map-l1`、`seal-font-l2/-l2-fallback/-map-l2`，均 `precache:false`，缺失静默跳过）。
+- 新建 `PENDING-LICENSES.md`（字体授权待办登记册）：敬峰中山王篆(L1) / 全字库说文解字(L2) / 隶书(V2-C2) 三项待授权，含 D-V2-02 说明与跟进机制。
+- `src/lib/licenses.ts`：`LicenseId` 扩展 `'OFL' | 'OpenGov-TW'`；`LicenseEntry` 新增 `pendingAuthorization`；新增 `pendingAuthorizationEntries()` 查询；`THIRD_PARTY_LICENSES` 登记 L1/L2。
+
+### N1.4 字源层级 UI 与覆盖率显示
+- `src/store/settings.ts`：新增 `sealLayers`（默认 `'L0'`）与持久化。
+- `src/pages/Settings.tsx`：偏好卡新增"篆书字源层级"三态 Select（L0/L0L1/all），切换后 `registerSealFont(next)` 按需注册（缺失静默）。
+- `src/pages/Editor.tsx`：篆书提示区新增覆盖率百分比（`已覆盖/总字数`）。
+- `src/pages/About.tsx`：新增"授权待办登记册"卡片（待授权列表 + `/PENDING-LICENSES.md` 链接）。
+- i18n（zh/en）：新增 `settings.sealLayers*` / `seal.coverage*` / `seal.layers.active` / `about.pendingLicense*` 等词条，英文包键集合与中文一致。
+
+### N1.5 资产命名空间升 v3 与旧缓存清理
+- `src/lib/assets.ts`：`ASSET_NAMESPACE`/`ASSET_CACHE_NAME` 升 `inkmotion-assets-v3`；`LEGACY_ASSET_CACHE_NAMES` 纳入 `'inkmotion-assets-v2'`（启动自动清理）。
+- 平台配置（`public/_headers`/`vercel.json`/`netlify.toml`/`vite.config.ts`）注释同步至 v3；路径通配符 `/fonts/seal/*` 已覆盖新字源。
+
+### 验证结果（全绿）
+- **单元测试 `vitest`：136/136 通过**（新增 `src/lib/__tests__/seal-v2.test.ts` 10 项：层级解析 / 合并优先级去重 / 覆盖率 / 字体栈静默跳过；`v1c5.test.ts` 同步 v3 语义 22 项；`seal.test.ts`/`scene.test.ts` 适配 `loadSealCharset` 返回 `null`）。
+- **E2E**：`e2e/v2c1.mjs` 新增并接入 `e2e/all.mjs` —— **V2-C1 13/13**（L0 回归渲染 + 层级三态切换 + v3 命名空间 + 旧 v2 缓存清理 + 零上传）；回归 **V1-C1 8/8**、**MVP 22/22** 均通过，确认分层改造未破坏既有行为。
+- **lint**：0 error；`tsc --noEmit` 通过。
+- **构建**：主包 368.86KB / gzip 122.30KB + 英文包独立 chunk（`i18n.en` gzip 2.36KB，按需）。
+
+### 已知边界（V2-C1）
+- L1 敬峰 / L2 全字库字源二进制与映射表**尚未随包提供**（资产待按 D-V2-02 采用并登记）；当前仅 L0 保底生效，L1/L2 加载失败静默跳过（架构就绪、资产补齐即自动生效，无需改代码）。
+- 三层共用 U+3D000 码位 + 字体回退栈：若某字同时被多层覆盖，渲染取**已注册字体中优先级最高**的字形（L1→L0→L2）；覆盖统计按合并索引去重（L1 优先）。
+- 切换字源层级后需字体注册生效：设置页切换已即时 `registerSealFont(next)`，但真实字形生效依赖对应 woff2 资产可用（当前仅 L0）。
+
+### 交付 zip（待用户验收）
+`InkMotion-V2-C1-篆书字源分层扩展-20261014.zip`
+
+> **验收结果**：用户回复"通过"（2026-10-14），V2-C1 结项。
+
+---
+
+## V2-C2 落地明细（2026-10-14）— 隶书路径与古文字描边动画 ✅ 已完成（待用户验收）
+
+前序：V2-C1 于 2026-10-14 验收通过；用户指示"继续你未完成的工作"，随即启动 V2-C2（N2.1–N2.4）。
+
+### N2.1 隶书字源 Spike 与授权登记 ✅
+- `docs/IM-SPIKE-V2-C2-隶书字源结论.md`：闭环 TBD-V2-02，**结论=采用**（承 D-V2-02 合规政策），资产待提供。
+- `PENDING-LICENSES.md` 第 3 项更名「隶书字源（Li）」并补 Spike 结论；`src/lib/licenses.ts` 追加隶书条目（OFL / pendingAuthorization）。
+
+### N2.2 隶书映射与渲染 ✅
+- 新建 `src/lib/lishu.ts`（镜像 `seal.ts` 单层机制，**不改写** V2-C1 既有测试与导出签名）：`loadLiCharset()`→`Promise<LiCharset|null>`（404→null）、`registerLiFont()`、`getLiFontStack()`、`transformToLi(text, charset|null)`（**null 时恒等映射**）、`estimateLiCoverage`。
+- 新建 `src/lib/useLi.ts`（`useLiOutOfRange` / `useLiCoverage`）、`src/components/LiCharsetPanel.tsx`（类前缀 `im-li-panel`；字表存在→网格，缺失→信息性提示）。
+- 枚举并行扩展：`FontFamily`（db/types.ts）与 `StrokePathKind`（engine/types.ts）同步追加 `'li'`；`ProjectOptions.outlineAnimation?: boolean` 可选（默认 false）→ 构造期回填默认。
+- `stroke.ts` 抽象通用 `drawRestrictedGlyph`；`drawSealGlyph` 委托之（**签名不变**）；新增 `drawLiGlyph`。
+- `scene.ts`：隶书 preload 分支（`loadLiCharset`→`transformToLi`→按需重排 path:'li'）；drawFrame 隶书分派。
+- `OptionsPanel`：字体下拉改读 `FONT_CATALOG`（自动含隶书）；隶书面板；**末尾新增第 6 个「动画」分组**（保持 nth=1 字体 / nth=4 画布 E2E 选择器不变）；`Editor.tsx` 并行隶书提示块（role=status, aria-live=polite）。
+- `fonts.ts`（隶书项 OFL / `li-restricted`）、`assets.ts`（li-font/li-map/li-font-fallback，precache:false）、`main.tsx`（启动注册）、`sceneFactory`/`PreviewCanvas`（透传 outlineAnimation）、`Help.tsx`/`presets.ts`（新增 `preset-jingyesi-li`，模板 4→5）、i18n 中英词条。
+- **向后兼容**：枚举**追加**而非替换；隶书字表/字体缺失时恒等映射 + 系统隶书族（`LiSu`/`STLiti`）+ 衬线兜底，UI 信息性提示，**不造假不阻塞**。
+
+### N2.3 矢量轮廓描边动画 ✅
+- 新建 `src/engine/outline.ts`：**自研轻量 TrueType 解析**（`glyf/loca/cmap/head/maxp`；支持简单轮廓 + 复合字形平移/缩放；cmap format 4/12）。
+  - **否决 opentype.js**：其 ~80KB（gzip 前）会突破 V2 门禁（gzip<200KB）→ 守门禁自研。
+  - `parseGlyphOutline(fontUrl, codePoint)`→`Promise<OutlineGlyph|null>`；缓存 + `WeakMap` 表解析缓存；递归深度限制（防损坏字体死循环）。
+  - 导出 `OutlineGlyph`/`OutlineContour`/`OutlinePoint`、`hasOutline`、`totalOutlineLength`、`getCachedOutline`、`__clearOutlineCache`。
+- `stroke.ts` 新增 `drawGlyphOutline(ctx, glyph, outline, progress, color, opts?)`：**Canvas2D 无 lineDashOffset 的通用/导出一致能力 → 采用累计弧长截断**；轮廓展平为直线段（二次贝塞尔按 10 段采样），在最后一段内插值收尾。
+- `scene.ts`：`SceneOptions.outlineAnimation`；`preloadOutlines()`（仅 seal/li 且开关开启时预解析，按 100 字分块让出主线程）；`getGlyphOutline`；drawFrame 描边分派（`useOutline` 判定）。
+
+### N2.4 描边性能与回退 ✅
+- 开关关闭 / 非受限路径 → **零解析开销**。
+- 解析失败静默降级整字填充，日志 `console.debug`（**非 error**，不污染控制台）。
+- 修复既有漂移：`e2e/release-check.mjs` C9 断言 `v2`→`v3`（与源码命名空间一致）。
+
+### 验证（全绿）
+- **类型**：`npx tsc --noEmit` ✅ 通过。
+- **单测**：`npx vitest run` —— **18 文件 / 170 测试全绿**（V2-C2 新增 `lishu.test.ts` 10 + `stroke-li.test.ts` 5 + `outline.test.ts` 8 + `stroke-outline.test.ts` 6 + `outline-perf.test.ts` 5）。
+  - `outline.test.ts` 含**真实合成 TTF fixture**（`fixtures/synthetic.ttf`），校验 bbox(100/600/0/700)、周长(2400)、二次贝塞尔曲线展平。
+- **Lint**：`npm run lint` ✅ 无警告/错误。
+- **构建**：`npm run build` ✅ —— 首屏 gzip **126.70KB**（自研解析 +~2.75KB，守 200KB 门禁）。
+- **E2E**：`e2e/v2c2.mjs`（13 项；接入 `e2e/all.mjs`，base:dev）。
+
+### 已知边界（V2-C2）
+- 隶书字体二进制与字表**尚未随包提供**（待按 D-V2-02 采用并登记）；当前隶书回退系统隶书族 + 衬线，字表缺失时恒等映射（架构就绪、资产补齐即自动生效，无需改代码）。
+- 描边动画**仅 seal/li 受限路径生效**，默认关闭；仅支持 TrueType（CFF/OTF/TTC 返回 null → 降级整字填充）。
+- 描边为**一次性轮廓描绘**（无笔顺承诺，与 D-V1-01 一致）。
+
+### 交付 zip（待用户验收）
+`InkMotion-V2-C2-隶书路径与描边动画-20261014.zip`
+
+> **验收结果**：用户回复"通过"（2026-10-14），并附**字体选型政策 D-V2-03**："字体请使用开源社区的优秀项目，抛开商用先以使用为主。" V2-C2 结项。
+
+---
+
+## V2-C3 落地明细（2026-10-14）— 国际化深化 ✅ 已完成（待用户验收）
+
+前序：V2-C2 于 2026-10-14 验收通过（附 D-V2-03 字体选型政策）；用户指示"继续"，随即启动 V2-C3（N3.1–N3.3）。
+
+### N3.1 英文文案母语审校 ✅
+- `src/lib/i18n.en.ts` **全量重写**：与 zh-CN 对齐 **252 键**（V1.0 仅 117 键，多为一词骨架占位）。
+- 母语级修订要点：
+  - `app.tagline` → "browser-only…never leaves your device"（贴合产品声明与隐私卖点）。
+  - `help.seal` → "about 165 of 238 characters…**no stroke-by-stroke writing**"（原 "no stroke animation" 语义过宽，会误导描边动画已支持篆书）。
+  - `options.font.kai` → "precise stroke order"；`export.capNote` → "with automatic downgrade"；`projects.deleteBody` 等含插值句法自然化。
+- `docs/IM-I18N-V2-001-英文审校记录.md`：审校目标 / 执行方式（闭环 **TBD-V2-05**） / 主要修订样例表 / 术语统一表 / TC-V2-I18N-01~04 验证结果 / 结论（TBD-V1-05 与 TBD-V2-05 同步关闭）。
+
+### N3.2 多语言包完善与硬编码清理 ✅
+- `src/lib/i18n.ts`：新增 `interpolate(template, params)`；`translate` 签名扩展为 `(key, lang, params?)`，zh/en 两分支均走插值 → 插值行为跨语言一致。
+- `src/lib/useI18n.ts`：`t` 返回 `(key, params?) => translate(key, lang, params)`；`useCallback` deps 修正（消除 lint 未用依赖告警）。
+- `src/lib/fonts.ts`：`FontMeta` 新增 `labelKey` / `attributionKey` / `noteKey?`（保留原 `label`/`attribution`/`note` 作中文兜底，**向后兼容**）；`FONT_CATALOG` 四项补全。
+- 硬编码清理覆盖：`Home` / `Projects` / `Editor` / `Help` / `About` / `Settings` 六页 + `OptionsPanel` / `FontManager` / `SealCharsetPanel` / `LiCharsetPanel` / `ExportDialog` / `Modal` / `Toast` / `PreviewCanvas` / `App` 九个组件。
+- **不翻译边界（设计原则，写入 `i18n.ts` 头注）**：业务内容（用户文本/模板古典正文/诗文标题）、语言自称（`简体中文`）、品牌墨迹符号（`墨`）——由 E2E 与脚本白名单排除，避免误报。
+
+### N3.3 审校流程固化 ✅（门禁入 CI）
+- **新建 `scripts/check-i18n.mjs`** —— 四重静态校验，退出码 0/1：
+  1. zh-CN 与 en 键集合**完全一致**；
+  2. 取值非空（防回退为骨架）；
+  3. 同键 `{占位符}` 集合**跨语言一致**（防插值错位）；
+  4. 扫描 `src/pages` + `src/components` 的 JSX 文本 / `placeholder` / `aria-label` / `title` 中的**硬编码中文**（排除已 `t()` 包裹者）。
+- `package.json` 新增脚本 `"check:i18n": "node scripts/check-i18n.mjs"`。
+- `.github/workflows/deploy.yml`：在 `npm run test` 之后、`npm run build` 之前插入 `npm run check:i18n` —— **文案变更不通过门禁则无法构建发布**。
+- `docs/IM-OPS-001-部署与运维文档.md`：新增 **§8bis「i18n 审校流程固化」**（门禁命令 / 检查项 / 变更约定 / 合规依据）；发布检查单新增 **O10**。
+- 变更约定：新增/修改 UI 文案须**同步登记中英双语**并跑 `npm run check:i18n`；涉及对外语义的英文措辞须走母语级复核并记入 `IM-I18N-V2-001`。
+
+### 验证（全绿）
+- **类型**：`npx tsc --noEmit` ✅ 通过。
+- **单测**：`npx vitest run` —— **173/173 全绿**（i18n 新增 3 项：插值中英一致 / 占位符集合一致 / N3.2 抽取词条双语登记）。
+- **Lint**：`npm run lint` ✅ 0 error / 0 warning。
+- **i18n 门禁**：`node scripts/check-i18n.mjs` ✅ 通过（252 键对齐、占位符一致、无硬编码中文残留）。
+- **构建**：`npm run build` ✅ —— 首屏 gzip **128.29KB**（守 200KB 门禁）；英文包独立 chunk `i18n.en-*.js`（14.53KB / gzip 5.01KB，**首屏不含**）。
+- **E2E**：`e2e/v2c3.mjs` **12/12**（语言切换 / 五页英文无残留 / 导航本地化 / 参数分组本地化 / 无横向溢出 / 英文独立 chunk / 无运行时错误）；接入 `e2e/all.mjs`；回归 **10 套件 / 159 项全绿**。
+- **发布检查单**：`e2e/release-check.mjs` 新增 V2-C8-1（英文独立 chunk）/ V2-C8-2（英文切换生效）/ V2-C8-3（英文模式无硬编码中文）→ **25/25 全绿**。
+
+### 已知边界（V2-C3）
+- 英文**已按母语级审校**，但非英语母语者长期驻场评审；后续若新增功能文案，须按 §8bis 约定走复核。
+- 语言仍为 **zh-CN + en 双语**；第 3 语言（如 ja）不在 V2.0 范围，`translate` 架构已预留扩展点（新增 pack 文件 + 注册即可）。
+- 古典内容（模板正文/诗文标题）**有意保留中文原文**，不随界面语言切换 —— 属产品设计，非缺陷。
+
+### 交付 zip（待用户验收）
+`InkMotion-V2-C3-国际化深化-20261014.zip`
+
+> **验收结果**：用户回复"勉强通过，核心功能毫无进展"，并提出两项立即执行要求：① 字体库扩展；② 核心功能与界面重新核实优化。V2-C3 结项，转入 V2-C4。
+
+---
+
+## V2-C4 落地明细（2026-10-14）— 字体库扩展与上传闭环 🔧 进行中（C4 已交付待验收）
+
+前序：用户对 V2-C3 评价"勉强通过，核心功能毫无进展"，明确指出**"字体上传却无任何作用"**并要求自检后给出规划。
+
+### 自检结论（基于真实代码，非推测）——三个"看起来有、实际没通"的断点
+
+**断点 1：字体上传是死路（最严重）**
+- `uploadFont()` 只做「校验 → FontFace 注册 → 写 IndexedDB」，**没有任何消费方**：
+  - `ProjectOptions.fontFamily` 只有 `kai/song/seal/li` 四个枚举，**无承载自定义字体的字段**；
+  - `scene.ts` 渲染分派是四路硬编码分支；`stroke.ts` 楷/宋路径**写死**字体栈；
+  - `refreshFonts()` 只读记录、**从不重注册 FontFace** → 刷新后彻底失效。
+- 即"登记台"：登记完就结束，既进不了渲染管线，重启后连登记态都失效。
+
+**断点 2："字体库扩展"名不副实**
+- 楷体依赖 **CDN**（hanzi-writer-data）取笔画数据，离线不可用；
+- 宋体**无字体文件**，靠系统 `Songti SC/SimSun` 兜底 → Linux 直接退化；
+- 小篆仅 **165/6721 字（2.5%）**；
+- 隶书**纯空壳**，`public/fonts/` 下无任何隶书文件；
+- 多层字源 L1/L2 资产**从未提供**，永远空跑。
+
+**断点 3：编辑器布局不合理**
+- `320px 1fr 300px` 三栏，1080px 以下塌成一列；预览区无等比缩放，竖屏 1080×1920 被压到不足半屏；参数面板 6 分组冗长溢出。
+
+### 用户决策（2026-10-14）
+1. **内置字库规模**：精选 2–3 款 + 子集化（推荐项）；
+2. **隶书处理**：找合规开源隶书接入（推荐项）；
+3. **交付节奏**：C4 与 C5 分两次交付（推荐项）。
+4. 补充决策：**D-V2-03 字体选型政策**（承 V2-C2）——优先开源社区优秀项目，以"先用起来"为第一原则。
+
+### N4.1 打通字体上传闭环 ✅
+- **新建 `src/lib/fontRegistry.ts`（字体注册中心）**：统一管理内置+上传字体的 FontFace 注册、`restoreFonts()` 启动恢复、`unregisterFont()` 删除注销、字体栈解析。
+- **`ProjectOptions` 新增 `customFontId?: string`**：承载"当前使用的自定义字体"。
+- **`restoreFonts()` 接入 `refreshFonts()`**：每次拉取列表后幂等重注册 → **修复"刷新即失效"**。
+- **新建 `src/lib/fontResolve.ts`**：`resolveFontStack(customFontId, records)` 把项目选项解析为**可直接拼进 `ctx.font` 的字体栈**（含兜底族）；`isCustomFontUsable()` 供 UI 显示生效状态。
+- `stroke.ts`：`drawSongGlyph` 增可选 `fontStack` 参数（**向后兼容**，签名扩展非替换），不再写死字体栈。
+- `scene.ts`：`SceneOptions.customFontStack`；自定义字体与内置宋体/毛笔楷统一走「整字显现」路径；`drawFrame` 按 family 取对应内置栈。
+- `fontUpload.ts`：改为「**先落库拿 id → 再按记录注册**」（支持按 fontId 索引/恢复/注销）；注册失败**回滚删除**（不留下"已上传却不可用"的记录）；错误文案**改为 i18n 错误码**（`font.err.*`）。
+- `Select.tsx`：新增 `group?: string` 支持原生 `<optgroup>`（**向后兼容**）。
+- `OptionsPanel`：字体下拉分「内置字体」「我的字体」两组；`custom:<id>` 与内置 family 双向映射；受限字库提示仅在非自定义字体时显示。
+
+### N4.2 内置开源中文字库 ✅
+- **接入三款 OFL 1.1 开源字体，全部随包提供**：
+
+| 字体 | 字形数 | 用途 | 分片 |
+|---|---|---|---|
+| 霞鹜文楷 LXGW WenKai Lite | 25694 | 楷体路径 | 39 片 |
+| 思源宋体 Noto Serif SC | 30928 | 宋体路径 | 39 片 |
+| 马善政毛笔楷 Ma Shan Zheng | 5959 | 书法体（新增 family `brush`） | 25 片 |
+
+- **新建 `scripts/build-fonts.py`（字体分片构建脚本）**：把完整 TTF 按 **unicode-range 切成 103 片 woff2**（单片最大 304KB），生成 `fonts.css` + `fonts.manifest.json`；支持 `--check` 校验产物完整性。
+- 浏览器**按需下载**：一篇常见文本只触发 2–4 片 → 首屏字体成本≈0，**体积总量 13.89MB 但不进首屏**。
+- `index.html` 引用 `/fonts/builtin/fonts.css`；`FONT_CATALOG` 全面重写（楷体由文鼎 UKai 改为霞鹜文楷，新增 `brush`）；`FontFamily` 枚举**追加** `'brush'`（向后兼容）。
+
+### N4.3 隶书字源如实处理 ✅
+- **检索结论（如实汇报）**：公开渠道**无合规开源隶书直链**。真隶书候选「阿里妈妈刀隶体」（GB2312 覆盖 6763 字，免费商用）**仅通过阿里妈妈平台发布**，无公开 CDN，沙箱内无法自动获取。
+- **处理方式**：保留隶书选项，但 **UI 如实标注**"当前依赖系统已安装的隶书字体；未安装时显示为普通衬线体"，**绝不假装支持**。
+- 登记「字体授权待办登记册」第 3 项为**待手动取件**：下载后放入 `fonts-src/` + 运行 `scripts/build-fonts.py` 即可真实接入（代码路径已就绪）。
+
+### N4.4 字体管理器升级 ✅
+- 上传字体卡片新增**字样预览**（用已注册字体真实渲染「永 和 九 年」）+ **生效状态徽标**（生效中/未生效）。
+- 删除字体时同步 `unregisterFont()`，避免残留字族。
+- 上传目标路径新增「毛笔楷路径」。
+
+### 验证（全绿）
+- **类型**：`npx tsc --noEmit` ✅ 通过。
+- **单测**：`npx vitest run` —— **20 文件 / 190 测试全绿**（新增 `v2c4-font.test.ts` 8 项 + `v2c4-fonts.test.ts` 9 项）。
+- **Lint**：`npm run lint` ✅ 0 error / 0 warning。
+- **i18n 门禁**：`node scripts/check-i18n.mjs` ✅ 274 键对齐。
+- **构建**：`npm run build` ✅ 首屏 gzip **130.06KB**（守 200KB 门禁）；**103 片字体资产全部进入 dist**。
+- **E2E**：新增 `e2e/v2c4.mjs` **19/19**（接入 `e2e/all.mjs`，base:preview）——**真实浏览器行为验证**：
+  - 内置字体 CSS 可访问、103 条 @font-face、unicode-range 分片；
+  - 三款字体首片真实可下载（200）；
+  - 进入编辑器后**浏览器真实按需拉取字体分片**（证明字体生效）；
+  - **画布渲染出墨迹像素**（证明字体真实绘制，非空白）；
+  - **切换宋体/楷体后渲染结果变化**（证明字体选择真实生效）；
+  - **上传字体 → 列表出现 → 字样预览 → 刷新后仍在且「生效中」**（全链路闭环）。
+- **发布检查单**：`e2e/release-check.mjs` 新增 **V2-C4-1~6** → **31/31 全绿**。
+- **全量回归**：`node e2e/all.mjs` —— **11 套件 / 162 用例全绿**。
+
+### 已知边界（V2-C4）
+- 隶书**仍无内置字源**（已如实标注 + 登记待手动取件）；真隶书接入需手动提供字体文件。
+- 内置字体为 **Regular 单字重**；粗体/细体未内置（可按 `scripts/build-fonts.py` 扩展）。
+- 字体分片总量 13.89MB，**不进首屏**（按需下载），但完整离线使用时浏览器会缓存必要分片。
+
+### 交付 zip（待用户验收）
+`InkMotion-V2-C4-字体库扩展与上传闭环-20261014.zip`
 
 ---
 
@@ -344,3 +612,65 @@ npm install
 npm run dev      # http://localhost:5173
 ```
 验证通过后回复"通过"，即进入下一检查点。
+
+---
+
+## V2-C5 核心功能与界面重构（2026-10-14 — ✅ 已完成，待用户验收）
+
+> 对应节点 **N5.1–N5.4**。交付背景：用户指出「**布局是否合理？**」并要求「**重点、核心功能及界面重新核实与优化**」。
+> 本检查点以「**先自检、再重构、逐项实测**」为方法论：先把界面上"声称"的核心功能逐项验证（N5.3 自查表），
+> 在过程中发现并修复一个真实产品缺陷（暂停态参数变化不可见），再完成三栏重排与预览等比缩放（N5.1）、
+> 参数手风琴（N5.2）、响应式与状态统一（N5.4）。
+
+### N5.3「声称 vs 实测」核心功能自查表 ✅（先于重构执行）
+- **方法**：真实 Chromium + 生产构建产物，统一判定标准为「**操作控件 → 观测可证伪的客观变化**」，
+  不接受「控件存在即通过」。产出归档为 `docs/IM-SELFCHECK-V2-C5-001-声称vs实测自查表.md`。
+- **结论**：**9/9 项核心功能均真实生效**（字体×3 / 上传 / 载体 / 墨色 / 速度 / 字号 / 画布规格 / 滚动 / 导出降级）。
+- **过程中发现并修复一个真实缺陷**：**暂停态下参数变化不可见**——场景按新参数重建后只重绘一帧，
+  画布停在"刚起步"的状态，体感上就是"改了参数没反应"（与"字体上传无作用"同类：功能在、呈现断）。
+  修复：`PreviewCanvas` 新增缓动重绘副作用（场景切换后按真实时间轴持续重绘至结束）。
+  证据：字号 48px→160px 的墨迹像素由"差异被首帧掩盖（15643 vs 15643）"变为"真实单调增长（3794 → 43553）"。
+- **测试方法教训（记录在案）**：受控 range input 直接写 `.value` 会被 React 复原，
+  E2E 必须走真实交互（键盘方向键）驱动 onChange，否则得到"参数无效"的假结论。
+
+### N5.1 编辑器三栏重排与预览等比缩放 ✅
+- **预览等比缩放**：新增 `src/lib/useElementSize.ts`（ResizeObserver 实测容器）+ `containSize()`
+  （按画布真实宽高比等比内接）。修复旧版 `aspect-ratio:9/16 + max-width:360px` 写死导致的两个问题：
+  横屏 16:9 被强塞竖屏框、大屏预览过小。舞台居中（`place-items:center`），`data-ratio` 暴露真实比例。
+- **三栏重排**：`320px | 1fr | 320px`（≥1440 放宽 360，1200–1440 收窄 288）；
+  断点 **1440 / 1200 / 900**：≤1200 预览置顶两栏（grid-template-areas），≤900 单栏堆叠。
+- **左右栏可折叠**：收起为 56px 竖排窄轨（`writing-mode: vertical-rl`），
+  **栅格真实重排**（中栏吃掉释放空间），折叠态持久化（localStorage）+ `aria-expanded` 可达。
+- **截图留档**：`docs/shot-1440.png`（三栏）/ `shot-1440-collapsed.png`（折叠窄轨）/
+  `shot-1100-two-col.png`（两栏）/ `shot-820-single.png`（单栏）。
+
+### N5.2 参数面板手风琴折叠 ✅
+- 新增 `src/components/Collapsible.tsx`：原生 button + `aria-expanded/aria-controls`（键盘可达），
+  **收起用 `hidden` 而非卸载子树**（避免 Select/Slider 焦点与取值重置，E2E 专门断言）。
+- 六个分组（载体/字体/书写/滚动/画布/动画）全部折叠化，**标题右侧显示当前取值摘要**（收起也可读）；
+  分组展开态由编辑器页统一持有，跨渲染保持。
+- **受限字库提示内联低位**：篆书/隶书字库面板收进「字体」分组低位，不再独立占块。
+- **向后兼容**：`Collapsible` 支持 `legacyFieldset`，外层保留 `fieldset.im-options__group` + legend，
+  使既有 E2E 的 `.im-options__group >> nth=N >> select` 定位语义不变（12 套件全量回归验证通过）。
+
+### N5.4 响应式与状态统一 ✅
+- **四断点实测**（1440/1280/1024/820）：预览均等比、不溢出（E2E 逐点断言）。
+- **状态统一**：错误态（不存在的项目给出明确提示，非空白页）、空态（正文为空显示占位提示且画布不崩溃）。
+- 无障碍延续：折叠开关 `aria-expanded`、竖条可聚焦、
+  `a11y.mjs` 明/暗双主题 15/15 保持全绿。
+
+### 验证（全绿）
+- **类型**：`npx tsc --noEmit` ✅。
+- **单测**：`npx vitest run` —— **21 文件 / 208 测试全绿**（新增 `v2c5-ui.test.ts` 18 项：
+  containSize 数学性质 / 三栏与断点 CSS / Collapsible 语义 / 手风琴六组 / 折叠不卸载子树）。
+- **Lint**：`npm run lint` ✅ 0 警告。**i18n**：zh/en **281 键**对齐（+7 键：折叠/展开/摘要/开/关等）。
+- **构建**：主包 gzip **131.81KB**（< 200KB 门禁；C4 为 130.06KB，+1.75KB 来自三栏/手风琴/等比缩放逻辑）。
+- **E2E 全量**：`e2e/all.mjs` —— **12 套件 / 178 用例全绿**（新增 `e2e/v2c5.mjs` **39/39**）。
+- **发布检查单**：`release-check.mjs` —— **41/41**（新增 V2-C5-1~9）。
+
+### 已知边界（如实记录）
+- 移动端触控手势（缩放/平移）未实现；折叠无过渡动画（避免与 ResizeObserver 抖动）；
+  参数面板无搜索（组数增长时需补）；横屏画布仍标注「实验」。
+
+### 交付 zip
+- `InkMotion-V2-C5-核心功能与界面重构-20261014.zip`

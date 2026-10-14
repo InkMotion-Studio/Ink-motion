@@ -1,6 +1,6 @@
 // 引擎公共类型（N2.x）。坐标单位为画布像素，原点左上，y 向下。
 
-export type StrokePathKind = 'kai' | 'song' | 'seal'; // 三路径（seal=小篆受限字库）
+export type StrokePathKind = 'kai' | 'song' | 'seal' | 'li' | 'custom'; // custom=用户上传/自定义字体（V2-C4 N4.1）
 
 export interface GlyphPlacement {
   char: string;

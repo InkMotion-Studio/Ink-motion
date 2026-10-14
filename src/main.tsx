@@ -8,6 +8,7 @@ import { precacheAssets } from '@/lib/assets';
 import { preloadTextures } from '@/lib/textures';
 import { initTelemetry } from '@/lib/telemetry';
 import { registerSealFont } from '@/lib/seal';
+import { registerLiFont } from '@/lib/lishu';
 import './styles/global.css';
 import './components/components.css';
 
@@ -20,6 +21,8 @@ async function bootstrap() {
   preloadTextures().catch(() => undefined);
   // V1-C1：注册小篆字体（纯本地静态资源；失败降级，不阻断首屏）
   registerSealFont().catch(() => undefined);
+  // V2-C2：注册隶书字体（资产待提供，缺失时静默跳过；失败不阻断首屏）
+  registerLiFont().catch(() => undefined);
 
   // V1-C2 N2.1：主题驱动 <html data-theme>，并订阅后续切换
   const applyTheme = (theme: string) => {

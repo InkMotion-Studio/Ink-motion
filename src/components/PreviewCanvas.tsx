@@ -1,6 +1,11 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { Button } from '@/components';
 import { Scene } from '@/engine';
+import { useElementSize, containSize } from '@/lib/useElementSize';
+import { registerLiFont } from '@/lib/lishu';
+import { resolveFontStack } from '@/lib/fontResolve';
+import { useSettingsStore } from '@/store/settings';
+import { useT } from '@/lib/useI18n';
 import type { Project } from '@/db/types';
 
 export interface PreviewHandle {
@@ -24,6 +29,7 @@ interface PreviewCanvasProps {
 
 export const PreviewCanvas = forwardRef<PreviewHandle, PreviewCanvasProps>(
   function PreviewCanvas({ project, onSnapshot }, ref) {
+    const t = useT();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const sceneRef = useRef<Scene | null>(null);
     const rafRef = useRef<number>(0);
@@ -31,6 +37,13 @@ export const PreviewCanvas = forwardRef<PreviewHandle, PreviewCanvasProps>(
     const progressRef = useRef<number>(0);
     const [playing, setPlaying] = useState(true);
     const [progress, setProgress] = useState(0);
+
+    // V2-C4 N4.1：字体列表（用于解析 customFontId → 字体栈）。用 ref 避免因列表变化重建场景循环。
+    const fonts = useSettingsStore((s) => s.fonts);
+    const fontsRef = useRef(fonts);
+    useEffect(() => {
+      fontsRef.current = fonts;
+    }, [fonts]);
 
     const clearRaf = () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -53,6 +66,10 @@ export const PreviewCanvas = forwardRef<PreviewHandle, PreviewCanvasProps>(
     useEffect(() => {
       clearRaf();
       const o = project.options;
+      // V2-C2：隶书路径按需注册字体（资产缺失时静默跳过）
+      if (o.fontFamily === 'li') void registerLiFont().catch(() => undefined);
+      // V2-C4 N4.1：解析自定义字体栈（上传字体 / 内置扩展字体）。未选中时为 undefined。
+      const customFontStack = resolveFontStack(o.customFontId, fontsRef.current);
       const scene = new Scene({
         text: project.text,
         width: o.width,
@@ -64,6 +81,8 @@ export const PreviewCanvas = forwardRef<PreviewHandle, PreviewCanvasProps>(
         backgroundColor: o.backgroundColor,
         writingSpeed: o.writingSpeed,
         scrollEnabled: o.scrollEnabled,
+        outlineAnimation: o.outlineAnimation,
+        customFontStack,
       });
       sceneRef.current = scene;
       const canvas = canvasRef.current!;
@@ -129,14 +148,65 @@ export const PreviewCanvas = forwardRef<PreviewHandle, PreviewCanvasProps>(
       setPlaying((p) => !p);
     };
 
+    // V2-C5 N5.1：预览舞台按画布真实宽高比 + 容器实测空间等比缩放（contain）。
+    const o = project.options;
+    const ratioW = o.width;
+    const ratioH = o.height;
+    const [stageWrapRef, avail] = useElementSize<HTMLDivElement>();
+    const stage = containSize(avail.width, avail.height, ratioW, ratioH);
+
+    // 缓动重绘：参数变化后场景重建会从 t=0 开始，若期间被暂停/跳转，
+    // 画布会停留在首帧——导致"改了参数但看不出变化"的错觉。
+    // 这里在场景切换后按真实时间轴持续重绘到结束，保证观感与实测都反映最新参数。
+    useEffect(() => {
+      const scene = sceneRef.current;
+      if (!scene) return;
+      let raf = 0;
+      const t0 = performance.now();
+      const dur = Math.max(1, scene.totalDurationMs);
+      const ease = () => {
+        const el = performance.now() - t0;
+        const tt = Math.min(dur, el);
+        draw(tt);
+        setProgress(tt / dur);
+        if (el < dur) raf = requestAnimationFrame(ease);
+        else setPlaying(false);
+      };
+      raf = requestAnimationFrame(ease);
+      return () => cancelAnimationFrame(raf);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [project.id, project.text, project.options]);
+
     return (
       <div className="im-preview">
-        <div className="im-preview__stage" style={{ aspectRatio: '9 / 16' }}>
-          <canvas ref={canvasRef} className="im-preview__canvas" aria-label="书写动画预览" />
+        <div className="im-preview__stagewrap" ref={stageWrapRef}>
+          <div
+            className="im-preview__stage"
+            style={
+              stage.width > 0
+                ? { width: `${stage.width}px`, height: `${stage.height}px` }
+                : { aspectRatio: `${ratioW} / ${ratioH}`, maxHeight: '100%' }
+            }
+            data-ratio={`${ratioW}:${ratioH}`}
+          >
+            <canvas
+              ref={canvasRef}
+              className="im-preview__canvas"
+              aria-label={t('a11y.previewCanvas')}
+            />
+          </div>
+        </div>
+        <div className="im-preview__meta">
+          <span className="im-preview__spec">
+            {t('preview.specLabel')} {o.width} × {o.height}
+          </span>
+          <span className="im-preview__ratio">
+            {ratioW}:{ratioH}
+          </span>
         </div>
         <div className="im-preview__controls">
           <Button variant="secondary" size="sm" onClick={toggle}>
-            {playing ? '暂停' : progress >= 1 ? '重播' : '播放'}
+            {playing ? t('preview.pause') : progress >= 1 ? t('preview.replay') : t('preview.play')}
           </Button>
           <div className="im-preview__bar">
             <div className="im-preview__fill" style={{ width: `${Math.round(progress * 100)}%` }} />

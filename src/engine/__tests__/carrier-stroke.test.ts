@@ -123,8 +123,9 @@ describe('N2.2 笔画引擎', () => {
     expect(strokeSpy).not.toHaveBeenCalled();
   });
 
-  it('V1.0 古文字路径不再阻塞（D-V1-01：受限字库整字显现）', () => {
+  it('V1.0/V2-C2 受限字库路径不再阻塞（D-V1-01：整字显现）', () => {
     expect(isBlockedPath('seal')).toBe(false);
+    expect(isBlockedPath('li')).toBe(false);
     expect(isBlockedPath('kai')).toBe(false);
     expect(isBlockedPath('song')).toBe(false);
   });
