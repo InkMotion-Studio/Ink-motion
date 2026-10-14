@@ -14,6 +14,14 @@ body,
   margin: 0;
 }
 
+/* 主题由 main.tsx 根据设置写入 data-theme；同时声明 color-scheme 让原生控件（滚动条/表单）跟随 */
+html[data-theme='dark'] {
+  color-scheme: dark;
+}
+html[data-theme='light'] {
+  color-scheme: light;
+}
+
 body {
   font-family: var(--im-font-sans);
   font-size: var(--im-fs-md);

@@ -1,6 +1,6 @@
 // 数据模型类型（IM-DB-001 §4–§5）。纯前端：全部存于 IndexedDB，文本永不上传。
 
-export type FontFamily = 'kai' | 'song' | 'ancient'; // 楷 / 宋 / 古文字（V1.0）
+export type FontFamily = 'kai' | 'song' | 'seal'; // 楷 / 宋 / 小篆（V1.0 古文字受限字库）
 export type CarrierType = 'paper' | 'bamboo'; // 宣纸卷轴 / 竹简
 
 /** 渲染与导出参数（编辑器参数面板的唯一真相来源） */

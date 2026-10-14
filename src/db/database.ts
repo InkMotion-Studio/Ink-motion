@@ -99,6 +99,11 @@ export async function putFont(font: Omit<FontRecord, 'id' | 'createdAt'> & { id?
   return record;
 }
 
+/** V1-C3 N3.2：删除上传字体（仅 fonts 表记录；dataURL 随记录一并移除） */
+export async function deleteFont(id: string): Promise<void> {
+  await db.fonts.delete(id);
+}
+
 // ===== Exports =====
 export async function putExport(rec: Omit<ExportRecord, 'id' | 'createdAt'> & { id?: string }) {
   const record: ExportRecord = { id: rec.id ?? uuid(), createdAt: Date.now(), ...rec };

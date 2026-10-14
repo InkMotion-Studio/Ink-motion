@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button, Modal, toast } from '@/components';
-import { detectCapabilities, exportVideo, type ExportCapabilities } from '@/engine';
+import { detectCapabilities, exportVideo, ExportAbortError, type ExportCapabilities } from '@/engine';
 import { projectToScene } from '@/lib/sceneFactory';
 import { planPerformance, subsetAdvice } from '@/lib/perf';
 import { putExport } from '@/db/database';
@@ -41,13 +41,24 @@ export function ExportDialog({ open, project, onClose, onFrame }: ExportDialogPr
     };
   }, []);
 
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort(); // 关闭对话框时中止进行中的导出
+    };
+  }, []);
+
   const run = async () => {
     const o = project.options;
-    const plan = planPerformance(Array.from(project.text).length, o.framerate);
+    const canvasSpec = { width: o.width, height: o.height };
+    const plan = planPerformance(Array.from(project.text).length, o.framerate, canvasSpec);
     const canvas = document.createElement('canvas');
     canvas.width = o.width;
     canvas.height = o.height;
     const scene = projectToScene(project);
+    const controller = new AbortController();
+    abortRef.current = controller;
     setState({ status: 'running', progress: 0 });
     try {
       await scene.preload();
@@ -61,6 +72,7 @@ export function ExportDialog({ open, project, onClose, onFrame }: ExportDialogPr
         },
         preferMp4: caps?.recommended === 'mp4',
         onProgress: (p) => setState((s) => ({ ...s, progress: p })),
+        signal: controller.signal, // V1-C3 N3.4：支持取消
       });
       if (urlRef.current) URL.revokeObjectURL(urlRef.current);
       const url = URL.createObjectURL(result.blob);
@@ -80,8 +92,20 @@ export function ExportDialog({ open, project, onClose, onFrame }: ExportDialogPr
       });
       toast.success(`导出完成（${result.format.toUpperCase()}）`);
     } catch (e) {
-      setState({ status: 'error', progress: 0, message: (e as Error).message });
+      const isAbort = e instanceof ExportAbortError || (e as Error).name === 'AbortError';
+      setState({
+        status: 'error',
+        progress: 0,
+        message: isAbort ? '已取消导出' : (e as Error).message,
+      });
+      if (isAbort) toast.success('已取消导出');
+    } finally {
+      abortRef.current = null;
     }
+  };
+
+  const cancel = () => {
+    abortRef.current?.abort();
   };
 
   const fmtSize = (n?: number) => (n ? `${(n / 1024 / 1024).toFixed(2)} MB` : '—');
@@ -96,12 +120,30 @@ export function ExportDialog({ open, project, onClose, onFrame }: ExportDialogPr
           <Button variant="primary" onClick={onClose}>
             完成
           </Button>
+        ) : state.status === 'running' ? (
+          <>
+            <Button variant="ghost" onClick={cancel}>
+              取消导出
+            </Button>
+            <Button variant="primary" loading disabled>
+              导出中…
+            </Button>
+          </>
+        ) : state.status === 'error' ? (
+          <>
+            <Button variant="ghost" onClick={onClose}>
+              关闭
+            </Button>
+            <Button variant="primary" onClick={run}>
+              重试
+            </Button>
+          </>
         ) : (
           <>
             <Button variant="ghost" onClick={onClose}>
               取消
             </Button>
-            <Button variant="primary" onClick={run} loading={state.status === 'running'} disabled={state.status === 'running'}>
+            <Button variant="primary" onClick={run}>
               开始导出
             </Button>
           </>
@@ -119,7 +161,11 @@ export function ExportDialog({ open, project, onClose, onFrame }: ExportDialogPr
             {caps.webcodecsMp4 ? '可用' : '不可用'}
           </p>
           {(() => {
-            const plan = planPerformance(Array.from(project.text).length, project.options.framerate);
+            const plan = planPerformance(
+              Array.from(project.text).length,
+              project.options.framerate,
+              { width: project.options.width, height: project.options.height },
+            );
             const advice = subsetAdvice(new Set(Array.from(project.text)).size);
             return (
               <>

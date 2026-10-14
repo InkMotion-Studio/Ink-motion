@@ -13,29 +13,50 @@ export interface PerfPlan {
 }
 
 /**
- * 依据文本长度与画布规格给出渲染/导出性能策略。
+ * 依据文本长度、请求帧率与画布规格给出渲染/导出性能策略。
  * - ≤300 字：全速
  * - 301–1500：轻微降帧（≥24）
  * - >1500：显著降帧（≥24 且分块让步），保障 5000 字可用
+ * - 画布 ≥4K（像素数 ≥ 2160×3840）：额外降帧，降低超大画布的编码压力
  */
-export function planPerformance(charCount: number, requestedFps: number): PerfPlan {
+export function planPerformance(
+  charCount: number,
+  requestedFps: number,
+  canvas?: { width: number; height: number },
+): PerfPlan {
+  const is4K = !!canvas && canvas.width * canvas.height >= 2160 * 3840;
+  // 4K 画布上限 30fps：兼顾编码吞吐与内存压力
+  const cap = is4K ? 30 : requestedFps;
+
   if (charCount <= 300) {
-    return { framerate: requestedFps, chunkSize: 0, degraded: false };
+    return {
+      framerate: Math.min(requestedFps, cap),
+      chunkSize: 0,
+      degraded: is4K && requestedFps > 30,
+      note: is4K && requestedFps > 30 ? '4K 画布已自动降帧至 30fps 以保障导出稳定' : undefined,
+    };
   }
   if (charCount <= 1500) {
     return {
-      framerate: Math.max(24, Math.min(requestedFps, 30)),
+      framerate: Math.max(24, Math.min(cap, 30)),
       chunkSize: 0,
-      degraded: requestedFps > 30,
-      note: '长文已自动降帧以保障流畅度',
+      degraded: requestedFps > 30 || is4K,
+      note: is4K ? '4K 画布：帧率已限制在 30fps 以内' : '长文已自动降帧以保障流畅度',
     };
   }
   return {
     framerate: 24,
     chunkSize: 200,
     degraded: true,
-    note: '超长文：已启用降帧与分块渲染（每 200 字让出主线程）',
+    note: is4K
+      ? '4K + 超长文：已启用降帧（24fps）与分块渲染'
+      : '超长文：已启用降帧与分块渲染（每 200 字让出主线程）',
   };
+}
+
+/** 估算画布内存占用（RGBA 每像素 4 字节），用于 4K 提示。 */
+export function estimateCanvasMemoryMB(width: number, height: number): number {
+  return (width * height * 4) / 1024 / 1024;
 }
 
 /** 分块迭代器：把数组切成 chunk，每块间可 await 让出主线程。 */

@@ -1,0 +1,14 @@
+墨演 InkMotion
+Copyright 2026 墨演 InkMotion
+
+本产品（应用代码）采用 Apache License 2.0 授权，详见 LICENSE 文件。
+
+本产品随附并依赖第三方字体与开源组件，其许可与署名要求见
+THIRD-PARTY-NOTICES.md。其中：
+
+  - 文鼎楷体 UKai 采用 Arphic Public License，须保留可见署名；
+  - 思源宋体 Source Han Serif 与霞鹜篆书 LXGW Seal 采用 SIL Open Font License 1.1，
+    许可全文随包分发于 fonts/seal/OFL.txt，并在「关于」页署名。
+
+本应用为纯前端应用：无服务端、无数据库、无账号系统，用户文本、项目与
+上传字体仅存储于用户本机浏览器（IndexedDB + Cache API），不会上传。

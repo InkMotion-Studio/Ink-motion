@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, Select, toast } from '@/components';
+import { Button, Card, Select, FontManager, toast } from '@/components';
 import { useSettingsStore } from '@/store/settings';
+import { useT } from '@/lib/useI18n';
 import {
   clearErrorLog,
   getErrorLog,
@@ -29,6 +30,7 @@ function useStorageEstimate(): string {
 export function SettingsPage() {
   const s = useSettingsStore();
   const navigate = useNavigate();
+  const t = useT();
   const storage = useStorageEstimate();
   const [reduced, setReduced] = useState(s.reduceMotion);
   const [telemetry, setTelemetryState] = useState(getTelemetryConfig());
@@ -40,37 +42,35 @@ export function SettingsPage() {
 
   return (
     <div style={{ maxWidth: 720 }}>
-      <h1 style={{ fontSize: 'var(--im-fs-2xl)' }}>设置</h1>
+      <h1 style={{ fontSize: 'var(--im-fs-2xl)' }}>{t('settings.title')}</h1>
 
       <Card style={{ marginBottom: 'var(--im-space-4)' }}>
-        <h2 className="im-card__title">偏好</h2>
+        <h2 className="im-card__title">{t('settings.preferences')}</h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--im-space-4)' }}>
           <Select
-            label="主题"
+            label={t('settings.theme')}
             value={s.theme}
             options={[
-              { value: 'light', label: '浅色（MVP）' },
-              { value: 'dark', label: '深色（V1.0 计划）' },
+              { value: 'light', label: t('settings.theme.light') },
+              { value: 'dark', label: t('settings.theme.dark') },
             ]}
             onChange={(v) => s.setTheme(v as 'light' | 'dark')}
-            hint="深色主题将在 V1.0 启用"
           />
           <Select
-            label="语言"
+            label={t('settings.language')}
             value={s.language}
             options={[
-              { value: 'zh', label: '简体中文（MVP）' },
-              { value: 'en', label: 'English（V1.0 计划）' },
+              { value: 'zh', label: t('settings.language.zh') },
+              { value: 'en', label: t('settings.language.en') },
             ]}
             onChange={(v) => s.setLanguage(v as 'zh' | 'en')}
-            hint="英文 i18n 将在 V1.0 启用"
           />
           <Select
-            label="默认载体"
+            label={t('settings.carrier')}
             value={s.defaultCarrier}
             options={[
-              { value: 'paper', label: '宣纸卷轴' },
-              { value: 'bamboo', label: '竹简' },
+              { value: 'paper', label: t('template.paper') + ' ' + t('options.carrier.paper') },
+              { value: 'bamboo', label: t('template.bamboo') + ' ' + t('options.carrier.bamboo') },
             ]}
             onChange={(v) => s.setDefaultCarrier(v as 'paper' | 'bamboo')}
           />
@@ -83,16 +83,15 @@ export function SettingsPage() {
                 s.setReduceMotion(e.target.checked);
               }}
             />{' '}
-            减少动画（尊重系统 prefers-reduced-motion）
+            {t('settings.reduceMotion')}
           </label>
         </div>
       </Card>
 
       <Card style={{ marginBottom: 'var(--im-space-4)' }}>
-        <h2 className="im-card__title">隐私</h2>
+        <h2 className="im-card__title">{t('settings.privacy')}</h2>
         <p style={{ color: 'var(--im-color-ink-soft)', fontSize: 'var(--im-fs-sm)' }}>
-          墨演是纯前端应用：你的文本、项目与字体仅存储于本机浏览器（IndexedDB + Cache
-          API），不会上传到任何服务器。导出视频也完全在本地生成。如需彻底清除，可使用下方按钮。
+          {t('settings.privacy.body')}
         </p>
         <Button
           variant="danger"
@@ -104,19 +103,24 @@ export function SettingsPage() {
             }
           }}
         >
-          清除本地数据
+          {t('settings.clearData')}
         </Button>
       </Card>
 
       <Card style={{ marginBottom: 'var(--im-space-4)' }}>
-        <h2 className="im-card__title">存储</h2>
+        <h2 className="im-card__title">{t('settings.fonts')}</h2>
+        <FontManager />
+      </Card>
+
+      <Card style={{ marginBottom: 'var(--im-space-4)' }}>
+        <h2 className="im-card__title">{t('settings.storage')}</h2>
         <p style={{ color: 'var(--im-color-ink-soft)', fontSize: 'var(--im-fs-sm)' }}>
           本地数据库占用估算：<strong>{storage}</strong>
         </p>
       </Card>
 
       <Card style={{ marginBottom: 'var(--im-space-4)' }}>
-        <h2 className="im-card__title">诊断</h2>
+        <h2 className="im-card__title">{t('settings.diagnostics')}</h2>
         <p style={{ color: 'var(--im-color-ink-soft)', fontSize: 'var(--im-fs-sm)' }}>
           错误日志仅保存在本机（不上传）。默认关闭匿名错误上报；开启后仅发送错误元数据（不含文本/项目内容）。
         </p>
@@ -151,11 +155,11 @@ export function SettingsPage() {
       </Card>
 
       <Card>
-        <h2 className="im-card__title">关于与致谢</h2>
+        <h2 className="im-card__title">{t('settings.about')}</h2>
         <p style={{ color: 'var(--im-color-ink-soft)', fontSize: 'var(--im-fs-sm)' }}>
-          墨演 InkMotion · MVP。字体与开源组件遵循各自许可，详见
+          墨演 InkMotion。字体与开源组件遵循各自许可，详见
           <Button variant="ghost" size="sm" onClick={() => navigate('/about')}>
-            关于与致谢
+            {t('settings.about')}
           </Button>
           页。
         </p>

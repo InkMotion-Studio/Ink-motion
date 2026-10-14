@@ -38,7 +38,7 @@
 }
 .im-btn--primary {
   background: var(--im-color-vermilion);
-  color: #fff;
+  color: var(--im-color-on-vermilion);
 }
 .im-btn--primary:hover:not(:disabled) {
   background: var(--im-color-vermilion-soft);
@@ -61,7 +61,7 @@
 }
 .im-btn--danger {
   background: var(--im-color-danger);
-  color: #fff;
+  color: var(--im-color-on-vermilion);
 }
 .im-btn--block {
   width: 100%;
@@ -311,6 +311,11 @@
   color: var(--im-color-ink-faint);
   margin: 0;
 }
+.im-options__note--warn {
+  color: var(--im-color-warning);
+  line-height: 1.5;
+  margin-top: var(--im-space-2);
+}
 
 /* ===== 项目卡片缩略图 ===== */
 .im-proj-thumb {
@@ -337,4 +342,128 @@
   align-items: center;
   flex-wrap: wrap;
   margin-bottom: var(--im-space-4);
+}
+
+/* V1-C1 N1.3：受限字库浏览面板 */
+.im-seal-panel {
+  margin-top: var(--im-space-3);
+  border: 1px solid var(--im-color-line);
+  border-radius: var(--im-radius-md);
+  padding: var(--im-space-3);
+  background: var(--im-color-surface-2);
+}
+.im-seal-panel__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: var(--im-fs-sm);
+  font-weight: 600;
+  color: var(--im-color-ink);
+}
+.im-seal-panel__version {
+  font-size: var(--im-fs-xs);
+  color: var(--im-color-ink-faint);
+  font-family: var(--im-font-mono);
+}
+.im-seal-panel__tip {
+  margin: 4px 0 8px;
+  font-size: var(--im-fs-xs);
+  color: var(--im-color-ink-faint);
+  line-height: 1.5;
+}
+.im-seal-panel__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(28px, 1fr));
+  gap: 4px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.im-seal-panel__cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border-radius: var(--im-radius-sm);
+  background: var(--im-color-surface);
+  color: var(--im-color-ink);
+  font-size: var(--im-fs-sm);
+  border: 1px solid transparent;
+}
+.im-seal-panel__cell--out {
+  color: var(--im-color-danger);
+  border-color: var(--im-color-danger);
+  background: color-mix(in srgb, var(--im-color-danger) 12%, var(--im-color-surface));
+}
+
+/* V1-C3 N3.2：字体管理面板 */
+.im-font-mgr {
+  margin-top: var(--im-space-3);
+  border: 1px solid var(--im-color-line);
+  border-radius: var(--im-radius-md);
+  padding: var(--im-space-3);
+  background: var(--im-color-surface-2);
+}
+.im-font-mgr__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: var(--im-fs-sm);
+  font-weight: 600;
+  color: var(--im-color-ink);
+}
+.im-font-mgr__count {
+  font-size: var(--im-fs-xs);
+  color: var(--im-color-ink-faint);
+}
+.im-font-mgr__tip {
+  margin: 4px 0 8px;
+  font-size: var(--im-fs-xs);
+  color: var(--im-color-ink-faint);
+  line-height: 1.5;
+}
+.im-font-mgr__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--im-space-3);
+  flex-wrap: wrap;
+}
+.im-font-mgr__family {
+  display: flex;
+  align-items: center;
+  gap: var(--im-space-2);
+  font-size: var(--im-fs-xs);
+  color: var(--im-color-ink-soft);
+}
+.im-font-mgr__family select {
+  padding: 4px 8px;
+  border-radius: var(--im-radius-sm);
+  border: 1px solid var(--im-color-line);
+  background: var(--im-color-surface);
+  color: var(--im-color-ink);
+  font-size: var(--im-fs-xs);
+}
+.im-font-mgr__empty {
+  margin: 8px 0 0;
+  font-size: var(--im-fs-xs);
+  color: var(--im-color-ink-faint);
+}
+.im-font-mgr__list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+.im-font-mgr__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--im-space-3);
+  padding: var(--im-space-2) 0;
+  border-top: 1px solid var(--im-color-line);
+  font-size: var(--im-fs-sm);
+  color: var(--im-color-ink);
+}
+.im-font-mgr__meta {
+  display: block;
+  font-size: var(--im-fs-xs);
+  color: var(--im-color-ink-faint);
 }

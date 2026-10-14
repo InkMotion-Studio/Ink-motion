@@ -24,7 +24,8 @@ export function Slider({
   format,
   id,
 }: SliderProps) {
-  const sliderId = id ?? React.useId();
+  const autoId = React.useId(); // V1-C5：无条件调用（rules-of-hooks）
+  const sliderId = id ?? autoId;
   const display = format ? format(value) : `${value}${unit}`;
   return (
     <div className="im-slider">

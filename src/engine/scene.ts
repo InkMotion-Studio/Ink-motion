@@ -4,11 +4,13 @@ import {
   loadStrokeData,
   drawKaiGlyph,
   drawSongGlyph,
+  drawSealGlyph,
   isBlockedPath,
 } from './stroke';
 import { renderCarrier } from './carrier';
 import type { GlyphPlacement, HanziStrokeData, LayoutResult } from './types';
 import type { CarrierType, FontFamily } from '@/db/types';
+import { loadSealCharset, transformToSeal } from '@/lib/seal';
 
 export interface SceneOptions {
   text: string;
@@ -34,17 +36,19 @@ interface GlyphTiming {
 
 export class Scene {
   readonly opts: SceneOptions;
-  readonly layout: LayoutResult;
+  layout: LayoutResult;
   readonly timings: GlyphTiming[] = [];
   totalDurationMs = 0;
   private readonly data = new Map<string, HanziStrokeData | null>();
 
   constructor(opts: SceneOptions) {
     this.opts = opts;
-    const path: 'kai' | 'song' | 'ancient' =
-      opts.fontFamily === 'song' ? 'song' : opts.fontFamily === 'ancient' ? 'ancient' : 'kai';
+    const path: 'kai' | 'song' | 'seal' =
+      opts.fontFamily === 'song' ? 'song' : opts.fontFamily === 'seal' ? 'seal' : 'kai';
+    // 古文字路径：构造期先以原文本排版；preload 中加载字表后再映射为小篆码位并重排
+    const renderText = opts.text;
     this.layout = layoutText({
-      text: opts.text,
+      text: renderText,
       width: opts.width,
       height: opts.height,
       fontSize: opts.fontSize,
@@ -73,14 +77,43 @@ export class Scene {
 
   /** 预加载楷体笔画数据（缺失字将被标记为降级，绘制时走整字）。 */
   async preload(): Promise<void> {
+    // 古文字路径：确保字表已加载后，将今字映射为小篆码位并重排（避免构造期字表未就绪）
+    if (this.opts.fontFamily === 'seal') {
+      try {
+        const cs = await loadSealCharset();
+        const { renderChars } = transformToSeal(this.opts.text, cs);
+        const renderText = renderChars.join('');
+        if (renderText !== this.layout.glyphs.map((g) => g.char).join('')) {
+          // 重新排版（使用映射后的小篆码位字符）
+          this.layout = layoutText({
+            text: renderText,
+            width: this.opts.width,
+            height: this.opts.height,
+            fontSize: this.opts.fontSize,
+            path: 'seal',
+          });
+        }
+      } catch {
+        // 字表加载失败：preload 不阻断，绘制层会按越界处理
+      }
+    }
     const chars = Array.from(new Set(this.layout.glyphs.map((g) => g.char))).filter(
       (c) => c.trim().length > 0 && !this.data.has(c),
     );
-    await Promise.all(
-      chars.map(async (c) => {
-        if (!this.data.has(c)) this.data.set(c, await loadStrokeData(c));
-      }),
-    );
+    // V1-C4 N4.3：长文分块预加载——每 200 字让出主线程，避免 5000 字时冻结 UI
+    const CHUNK = 200;
+    for (let i = 0; i < chars.length; i += CHUNK) {
+      const batch = chars.slice(i, i + CHUNK);
+      await Promise.all(
+        batch.map(async (c) => {
+          if (!this.data.has(c)) this.data.set(c, await loadStrokeData(c));
+        }),
+      );
+      // 让出主线程（最后一批无需让出）
+      if (i + CHUNK < chars.length) {
+        await new Promise((r) => setTimeout(r, 0));
+      }
+    }
     // 用真实笔画数更新计时线（缺失字保持估计值并走整字降级）
     for (const g of this.layout.glyphs) {
       const d = this.data.get(g.char);
@@ -154,6 +187,12 @@ export class Scene {
       const p = Math.min(1, local);
       if (g.path === 'song') {
         drawSongGlyph(ctx, g, p, this.opts.strokeColor);
+      } else if (g.path === 'seal') {
+        // 古文字：仅渲染小篆码位字符（U+3D000+）；越界字符（仍为现代字符）跳过
+        if (g.char.codePointAt(0) !== undefined && g.char.codePointAt(0)! >= 0x3d000) {
+          drawSealGlyph(ctx, g, p, this.opts.strokeColor);
+        }
+        // 越界字符：不绘制（IM-TEST-001 §5.2 / TC-V1-GLY-07）
       } else {
         // 楷体：有数据则精确逐笔，否则整字降级
         const data = this.getGlyphData(g.char);

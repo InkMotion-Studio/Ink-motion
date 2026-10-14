@@ -1,9 +1,10 @@
 # IM-OPS-001 部署与运维文档
 
 **文档编号：IM-OPS-001**
-**版本：v1.0**
-**状态：待批准**
+**版本：v1.1**
+**状态：已批准（V1.0 发布同步更新）**
 **编制日期：2026-10-13**
+**更新日期：2026-10-14（V1-C5 N5.1）**
 **编制人：运维负责人 / AI 协作**
 **上游文档：** IM-PROJ-001 v1.2、IM-ARCH-001 v1.1、IM-DB-001 v1.1、IM-API-001 v1.1、IM-UI-001 v1.0、IM-BASELINE-001、IM-PLAN-001 v1.0、IM-RISK-001 v1.0（均已批准/同步产出）
 
@@ -14,6 +15,7 @@
 | 版本 | 日期 | 修订内容 | 修订人 |
 |---|---|---|---|
 | v1.0 | 2026-10-13 | 初稿。定义纯前端静态部署、CDN 资产托管与缓存版本化、前端错误上报替代服务端监控、回滚与许可交付 | 运维负责人 |
+| v1.1 | 2026-10-14 | V1-C5 N5.1 更新：资产缓存命名空间升至 `inkmotion-assets-v2`（新增小篆字库资产）；补充资产清单、缓存迁移与清理、多平台缓存/安全头配置、CI 门禁（单测 + 随包许可校验）、发布检查单增项 | 运维负责人 / AI 协作 |
 
 ---
 
@@ -101,16 +103,44 @@
 
 ## 6. CDN 与缓存版本化
 
-> 对应 IM-DB-001 §6.3、IM-PLAN-001 N0.4。
+> 对应 IM-DB-001 §6.3、IM-PLAN-001 N0.4、V1-C5 N5.1。
 
 | 项 | 策略 |
 |---|---|
-| 缓存名 | `inkmotion-assets-v1`（应用版本化） |
-| 升级 | 新版本创建新缓存名（如 `...-v2`），旧版本定期清理 |
+| **当前缓存名** | **`inkmotion-assets-v2`**（V1.0 起；v1 已列入历史清单） |
+| 命名空间 | `inkmotion-assets-v2`（CDN 模式下路径前缀；同源部署直取 `public/`） |
+| 升级 | 新版本创建新缓存名（v(N+1)），启动时自动清理历史缓存（`purgeLegacyAssetCaches`） |
 | 回源 | CDN 边缘缓存，源站为静态托管或对象存储 |
 | 失效 | 文件名哈希 / 缓存名版本化，避免脏缓存 |
 | 容量 | ≤ 200MB（IM-DB-001 §6.1） |
 | LRU | 资产缓存按时间/容量淘汰（IM-DB-001 §6.4） |
+
+### 6.1 资产清单（V1.0 / `src/lib/assets.ts` 为单一真源）
+
+| 资产键 | 路径 | 类型 | 预缓存 |
+|---|---|---|---|
+| `texture-paper` | `textures/paper.png` | 纹理 | 是 |
+| `texture-bamboo` | `textures/bamboo.png` | 纹理 | 是 |
+| `seal-font` | `fonts/seal/LXGWSeal-Glyphs.woff2`（42KB 子集） | 字体 | 是 |
+| `seal-map` | `fonts/seal/seal-map.json`（165 篆字 / 238 今字） | 数据 | 是 |
+| `seal-license` | `fonts/seal/OFL.txt` | 许可 | 是 |
+| `seal-font-fallback` | `fonts/seal/LXGWSeal-Regular.ttf`（223KB） | 字体 | 否（按需回退） |
+
+### 6.2 同源部署与 CDN 模式
+
+- **同源（默认）**：`VITE_ASSET_CDN` 留空，资产 URL 直接引用站点相对路径（`/fonts/seal/...`），由静态托管一并发布；**零外域请求**。
+- **CDN 模式**：注入 `VITE_ASSET_CDN=https://cdn.example.com`，URL 变为 `<CDN>/inkmotion-assets-v2/<path>`；字体需 CORS 头（`Access-Control-Allow-Origin: *`）。
+
+> V1-C5 修复：此前同源模式会误拼为 `/inkmotion-assets-v1/...` 导致预缓存 404（静默失败），现已修正为相对 `public/` 路径。
+
+### 6.3 多平台缓存与安全头
+
+| 平台 | 配置文件 | 关键策略 |
+|---|---|---|
+| Netlify | `public/_headers`（+ `netlify.toml` 重定向） | `/assets/*`、`/fonts/seal/*` immutable 长缓存；安全头 + Permissions-Policy |
+| Vercel | `vercel.json` | 同源策略（headers 段） |
+| Cloudflare Pages | `public/_headers` | 同 Netlify |
+| GitHub Pages | 平台默认 | 无自定义头；依赖文件名哈希与 Cache API |
 
 ---
 
@@ -119,26 +149,28 @@
 | 场景 | 回滚方式 |
 |---|---|
 | 应用构建缺陷 | 静态托管平台一键回滚到上一部署（原子切换） |
-| 资产损坏 | 资产 CDN 回滚到上一缓存版本（`inkmotion-assets-v(N-1)`） |
+| 资产损坏 | 资产 CDN 回滚到上一缓存版本（`inkmotion-assets-v(N-1)`）；同源部署回滚上一构建即可 |
+| 缓存异常 | 用户端清缓存：应用启动时自动清理历史版本缓存；必要时用户手动清除站点数据 |
 | 紧急停服 | 部署"维护页"占位（极少用） |
 
-> 因无状态服务端，回滚成本极低、无数据迁移风险。
+> 因无状态服务端，回滚成本极低、无数据迁移风险。**回滚不涉及用户本地数据**（IndexedDB 由用户持有）。
 
 ---
 
 ## 8. 许可交付与致谢
 
-> 对应 IM-RISK-001 R-06、IM-PLAN-001 §9 C2。
+> 对应 IM-RISK-001 R-06、IM-PLAN-001 §9 C2、V1-C5 N5.2。真源：`src/lib/licenses.ts` 与仓库 `THIRD-PARTY-NOTICES.md`。
 
-| 字体 | 许可 | 交付要求 |
-|---|---|---|
-| 楷体（Arphic UKai） | **Arphic PL** | **必须可见署名**（关于/致谢页）；保留版权声明 |
-| 宋体（Source Han Serif） | **OFL** | 致谢页署名；随分发保留 OFL |
-| 开源小篆（待发布） | **OFL** | 发布后署名；跟踪进度（R-01） |
-| Lucide Icons | MIT | 致谢（可选） |
-| Dexie / Hanzi Writer | MIT | 致谢（可选） |
+| 字体 / 组件 | 许可 | 交付要求 | 状态 |
+|---|---|---|---|
+| 楷体（Arphic UKai） | **Arphic PL** | **必须可见署名**（关于页）；保留版权声明 | ✅ 已署名 |
+| 宋体（Source Han Serif） | **OFL 1.1** | 关于页署名；随分发保留 OFL | ✅ 已署名 |
+| 小篆（霞鹜篆书 LXGW Seal） | **OFL 1.1** | 关于页署名 + **随包分发 `fonts/seal/OFL.txt`** + 关于页本地查阅入口 | ✅ V1-C5 新增 |
+| Hanzi Writer（含笔顺数据） | MIT | 开源组件清单致谢 | ✅ |
+| Dexie.js | Apache-2.0 | 开源组件清单致谢 | ✅ |
+| React / Zustand / React Router / mp4-muxer | MIT | 开源组件清单致谢 | ✅ |
 
-**发布检查单必含**：关于页含 Arphic PL 与 OFL 署名（IM-UI-001 §6.5.1）。
+**发布检查单必含**：关于页含 Arphic PL 与 OFL 署名（IM-UI-001 §6.5.1）；随包许可文件在 CI 中校验存在（`NOTICE`、`THIRD-PARTY-NOTICES.md`、`public/fonts/seal/OFL.txt`）。
 
 ---
 
@@ -154,17 +186,19 @@
 
 ---
 
-## 10. MVP 发布检查单（运维侧）
+## 10. 发布检查单（运维侧）
 
-| # | 检查项 | 来源 |
-|---|---|---|
-| O1 | 静态部署上线，HTTPS 可用 | N5.1 |
-| O2 | 资产 CDN 缓存版本化落地（`inkmotion-assets-v1`） | N0.4、§6 |
-| O3 | 前端错误上报接入（Sentry 类） | N5.2、§5 |
-| O4 | CDN 资产合成探测通过 | §5 |
-| O5 | Arphic PL / OFL 署名页随发 | §8、C2 |
-| O6 | 回滚预案验证（平台一键回滚可用） | §7 |
-| O7 | 零上传验证（监控不含用户数据） | §5、IM-TEST-001 §5.5 |
+| # | 检查项 | 来源 | V1.0 状态 |
+|---|---|---|---|
+| O1 | 静态部署上线，HTTPS 可用 | N5.1 | ✅ 静态产物 + 多平台配置就绪 |
+| O2 | 资产缓存版本化落地（`inkmotion-assets-v2`）+ 历史缓存清理 | N0.4、§6 | ✅ E2E 验证迁移 |
+| O3 | 前端错误上报接入（本地环形缓冲 + 可选匿名上报，默认关闭） | N5.2、§5 | ✅ 设置页诊断 |
+| O4 | 资产合成探测通过（字体/字表/OFL/纹理均 200） | §5 | ✅ `e2e/v1c5.mjs` |
+| O5 | Arphic PL / OFL 署名页随发 + 随包许可文件 | §8、C2 | ✅ 关于页 + OFL.txt |
+| O6 | 回滚预案验证（平台一键回滚可用；无状态无迁移） | §7 | ✅ 文档化 |
+| O7 | 零上传验证（监控不含用户数据；无对外 POST） | §5、IM-TEST-001 §5.5 | ✅ E2E 断言 |
+| O8 | CI 门禁：lint + 单测（126）+ 构建 + 随包许可校验 | V1-C5 N5.3 | ✅ `.github/workflows/deploy.yml` |
+| O9 | 多平台缓存与安全响应头配置（Netlify/Vercel/CF） | §6.3 | ✅ `_headers` / `vercel.json` / `netlify.toml` |
 
 ---
 
@@ -172,7 +206,7 @@
 
 ### 11.1 运维文档索引
 
-IM-PLAN-001（发布节点 N5.1/N5.2/N5.3）、IM-RISK-001（R-06/R-10）、IM-TEST-001（§5.5 隐私、§7 门禁）、IM-DB-001（§6 缓存、§11 隐私）、IM-API-001（§15.2 无网络）。
+IM-PLAN-001（发布节点 N5.1/N5.2/N5.3）、IM-PLAN-V1-001（V1-C5 N5.1~N5.3）、IM-RISK-001 / IM-RISK-V1-001（R-06/R-10）、IM-TEST-001 / IM-TEST-V1-001（§5.5 隐私、§7/§8 门禁）、IM-DB-001（§6 缓存、§11 隐私）、IM-API-001（§15.2 无网络）、THIRD-PARTY-NOTICES.md（许可交付）。
 
 ### 11.2 相关文档
 

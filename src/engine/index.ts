@@ -16,5 +16,7 @@ export type { SceneOptions } from './scene';
 export {
   detectCapabilities,
   exportVideo,
+  ExportAbortError,
 } from './exporter';
 export type { ExportCapabilities, ExportRequest, ExportResult } from './exporter';
+export { drawSealGlyph } from './stroke';

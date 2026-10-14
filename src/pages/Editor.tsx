@@ -12,10 +12,13 @@ import {
 import { useEditorStore } from '@/store/editor';
 import { TEXT_HARD_LIMIT, updateProject } from '@/db/database';
 import { downloadProjectJSON, parseProjectJSON } from '@/lib/projectIO';
+import { useSealOutOfRange } from '@/lib/useSeal';
+import { useT } from '@/lib/useI18n';
 
 export function EditorPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const t = useT();
   const { project, dirty, loading, init, setTitle, setText, setOptions, save } = useEditorStore();
   const [exportOpen, setExportOpen] = useState(false);
   const previewRef = useRef<PreviewHandle>(null);
@@ -27,8 +30,12 @@ export function EditorPage() {
 
   const doSave = useCallback(async () => {
     await save();
-    toast.success('已保存到本地');
-  }, [save]);
+    toast.success(t('editor.saved'));
+  }, [save, t]);
+
+  // V1-C1 N1.3：古文字路径越界字符检测与提示（TC-V1-GLY-07 / IM-UI-001 §14.3）
+  // 必须置于所有提前 return 之前，保证 hooks 调用顺序稳定
+  const outOfRange = useSealOutOfRange(project?.text ?? '', project?.options.fontFamily ?? 'kai');
 
   // 快捷键：Ctrl/Cmd+S 保存
   useEffect(() => {
@@ -78,12 +85,12 @@ export function EditorPage() {
     <div className="im-editor">
       <header className="im-editor__bar">
         <Button variant="ghost" size="sm" onClick={() => navigate('/projects')}>
-          ← 返回
+          {t('action.back')}
         </Button>
         <Input
           value={project.title}
           onChange={(e) => setTitle(e.target.value)}
-          aria-label="作品标题"
+          aria-label={t('editor.title')}
           style={{ maxWidth: 260 }}
         />
         <span style={{ flex: 1 }} />
@@ -91,19 +98,20 @@ export function EditorPage() {
           aria-live="polite"
           style={{ fontSize: 'var(--im-fs-sm)', color: 'var(--im-color-ink-faint)' }}
         >
-          {dirty ? '未保存' : '已保存'}
+          {dirty ? t('action.unsaved') : t('editor.saved')}
         </span>
         <Button variant="ghost" size="sm" onClick={() => downloadProjectJSON(project)}>
-          导出工程
+          {t('action.exportProject')}
         </Button>
         <Button variant="ghost" size="sm" onClick={() => fileRef.current?.click()}>
-          导入工程
+          {t('action.importProject')}
         </Button>
         <input
           ref={fileRef}
           type="file"
           accept="application/json,.json"
           className="im-sr-only"
+          aria-label="选择要导入的工程 JSON 文件"
           onChange={(e) => {
             const f = e.target.files?.[0];
             if (f) void onImport(f);
@@ -111,7 +119,7 @@ export function EditorPage() {
           }}
         />
         <Button variant="primary" size="sm" onClick={doSave}>
-          保存
+          {t('action.save')}
         </Button>
         <Button
           variant="secondary"
@@ -121,20 +129,20 @@ export function EditorPage() {
             setExportOpen(true);
           }}
         >
-          导出视频
+          {t('action.export')}
         </Button>
       </header>
 
       <div className="im-editor__grid">
-        <section className="im-editor__pane" aria-label="文本输入">
-          <h3 className="im-card__title">文本</h3>
+        <section className="im-editor__pane" aria-label={t('editor.body')}>
+          <h3 className="im-card__title">{t('editor.body')}</h3>
           <textarea
             className="im-textarea"
             value={project.text}
             maxLength={TEXT_HARD_LIMIT}
             onChange={(e) => setText(e.target.value)}
             placeholder="输入要书写的古典诗文，竖排右起逐笔呈现…"
-            aria-label="正文"
+            aria-label={t('editor.body')}
           />
           <p
             style={{
@@ -142,17 +150,31 @@ export function EditorPage() {
               color: remaining < 200 ? 'var(--im-color-danger)' : 'var(--im-color-ink-faint)',
             }}
           >
-            剩余 {remaining} / {TEXT_HARD_LIMIT} 字
+            {t('editor.charRemaining')} {remaining} / {TEXT_HARD_LIMIT} 字
           </p>
+          {project.options.fontFamily === 'seal' && (
+            <p
+              className="im-editor__seal-hint"
+              aria-live="polite"
+              role="status"
+              style={{ fontSize: 'var(--im-fs-xs)', color: 'var(--im-color-ink-faint)' }}
+            >
+              {outOfRange.length === 0
+                ? '小篆（受限字库）：当前文本均在字表内，可完整呈现。'
+                : `${t('seal.outOfRangeHint')}「${outOfRange.join('')}」`}
+              <br />
+              古文字路径为受限字库模式，不提供逐笔书写，仅整字显现。
+            </p>
+          )}
         </section>
 
-        <section className="im-editor__pane im-editor__preview" aria-label="实时预览">
-          <h3 className="im-card__title">实时预览</h3>
+        <section className="im-editor__pane im-editor__preview" aria-label={t('editor.preview')}>
+          <h3 className="im-card__title">{t('editor.preview')}</h3>
           <PreviewCanvas ref={previewRef} project={project} onSnapshot={onSnapshot} />
         </section>
 
-        <section className="im-editor__pane" aria-label="参数面板">
-          <h3 className="im-card__title">参数</h3>
+        <section className="im-editor__pane" aria-label={t('editor.options')}>
+          <h3 className="im-card__title">{t('editor.options')}</h3>
           <OptionsPanel options={project.options} onChange={setOptions} />
         </section>
       </div>

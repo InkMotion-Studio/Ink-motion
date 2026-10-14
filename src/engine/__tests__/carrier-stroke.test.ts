@@ -123,8 +123,8 @@ describe('N2.2 笔画引擎', () => {
     expect(strokeSpy).not.toHaveBeenCalled();
   });
 
-  it('古文字路径被守卫标记为阻塞', () => {
-    expect(isBlockedPath('ancient')).toBe(true);
+  it('V1.0 古文字路径不再阻塞（D-V1-01：受限字库整字显现）', () => {
+    expect(isBlockedPath('seal')).toBe(false);
     expect(isBlockedPath('kai')).toBe(false);
     expect(isBlockedPath('song')).toBe(false);
   });

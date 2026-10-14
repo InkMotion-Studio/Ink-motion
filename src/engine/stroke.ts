@@ -1,8 +1,9 @@
 // N2.2 笔画引擎
 // 楷体 = Hanzi Writer 精确笔顺（消费其笔画中线 medians 做逐笔揭示）；
 // 宋体 = 整字显现（fillText，透明度/缩放淡入）；
-// 古文字 = 阻塞（调用层已禁用，此处仅守卫）。
+// 古文字（小篆，V1-C1 D-V1-01）= 受限字库整字显现（按 U+3D000+ 码位 fillText，不承诺笔顺）。
 import type { GlyphPlacement, HanziStrokeData } from './types';
+import { SEAL_FONT_FAMILY } from '@/lib/seal';
 
 const HW_CDN = 'https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0.1/';
 const STROKE_WIDTH = 70; // 1024 坐标空间内的笔宽（约为字面 7%）
@@ -119,7 +120,28 @@ export function drawSongGlyph(
   ctx.restore();
 }
 
-/** 阻塞路径守卫：古文字未就绪，不绘制（越界跳过，IM-TEST-001 §5.2）。 */
-export function isBlockedPath(path: GlyphPlacement['path']): boolean {
-  return path === 'ancient';
+// ===== 古文字（小篆）：受限字库整字显现（按小篆码位 fillText，整字淡入） =====
+export function drawSealGlyph(
+  ctx: CanvasRenderingContext2D,
+  glyph: GlyphPlacement,
+  progress: number,
+  color: string,
+): void {
+  if (progress <= 0) return;
+  const cx = glyph.x + glyph.size / 2;
+  const cy = glyph.y + glyph.size / 2;
+  ctx.save();
+  ctx.globalAlpha = Math.min(1, progress);
+  ctx.fillStyle = color;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  // 使用注册的小篆字体；glyph.char 已是被映射为小篆码位的字符（见 scene.ts）
+  ctx.font = `${Math.round(glyph.size * 0.95)}px "${SEAL_FONT_FAMILY}", "Songti SC", "SimSun", serif`;
+  ctx.fillText(glyph.char, cx, cy);
+  ctx.restore();
+}
+
+/** 阻塞路径守卫：所有三路径均已可用（V1.0 起古文字不再阻塞，IM-GLYPH-001 D-V1-01）。 */
+export function isBlockedPath(_path: GlyphPlacement['path']): boolean {
+  return false;
 }

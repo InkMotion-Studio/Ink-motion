@@ -1,4 +1,5 @@
 import { Button, Select, Slider } from '@/components';
+import { SealCharsetPanel } from '@/components/SealCharsetPanel';
 import type { CarrierType, FontFamily, ProjectOptions } from '@/db/types';
 
 export interface OptionsPanelProps {
@@ -54,10 +55,14 @@ export function OptionsPanel({ options: opt, onChange }: OptionsPanelProps) {
           options={[
             { value: 'kai', label: '楷体（精确笔顺）' },
             { value: 'song', label: '宋体（整字显现）' },
+            { value: 'seal', label: '小篆（霞鹜篆书·受限字库）' },
           ]}
           onChange={(v) => onChange({ fontFamily: v as FontFamily })}
-          hint="古文字路径受字体资产阻塞，暂不可用（IM-RISK-001 R-01）"
+          hint="小篆为受限字库模式（约 165/238 字），不在字库内的字符自动跳过；仅整字显现，不提供逐笔书写。"
         />
+        {opt.fontFamily === 'seal' && (
+          <SealCharsetPanel text={''} />
+        )}
         <label className="im-options__color">
           <span>墨色</span>
           <input
@@ -115,12 +120,19 @@ export function OptionsPanel({ options: opt, onChange }: OptionsPanelProps) {
             { value: '1080x1920', label: '1080 × 1920（竖屏 9:16）' },
             { value: '720x1280', label: '720 × 1280（竖屏 9:16 轻量）' },
             { value: '1920x1080', label: '1920 × 1080（横屏 16:9，实验）' },
+            { value: '2160x3840', label: '2160 × 3840（4K 竖屏 9:16）' },
           ]}
           onChange={(v) => {
             const [w, h] = v.split('x').map(Number);
             onChange({ width: w, height: h });
           }}
         />
+        {opt.width * opt.height >= 2160 * 3840 && (
+          <p className="im-options__note im-options__note--warn" role="status">
+            4K 画布占用约 {((opt.width * opt.height * 4) / 1024 / 1024).toFixed(0)}MB
+            内存，低端设备可能失败；如导出失败请降回 1080×1920。
+          </p>
+        )}
         <Slider
           label="导出帧率"
           min={24}

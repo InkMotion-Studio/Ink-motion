@@ -55,6 +55,23 @@
   color: var(--im-color-ink);
   font-weight: 600;
 }
+.im-topnav__theme {
+  margin-left: var(--im-space-2);
+  width: 34px;
+  height: 34px;
+  border-radius: var(--im-radius-md);
+  border: 1px solid var(--im-color-line);
+  background: var(--im-color-surface);
+  color: var(--im-color-ink);
+  font-size: 16px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.im-topnav__theme:hover {
+  background: var(--im-color-surface-hover);
+}
 
 /* 首页网格 */
 .im-home__hero {

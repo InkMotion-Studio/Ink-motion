@@ -1,13 +1,15 @@
 // 字体目录与许可元数据（N1.4 / IM-API-001 §5.1 / IM-UI-001 §6.5.1）
 // 楷体=Arphic UKai（Arphic Public License，须可见署名）；
 // 宋体=Source Han Serif（OFL）；
-// 古文字=开源小篆（OFL，尚未发布 → 阻塞，见 IM-RISK-001 R-01）。
+// 古文字=小篆（霞鹜篆书 LXGW Seal，OFL 1.1，受限字库模式，见 IM-GLYPH-001 / D-V1-01）。
+
+import type { FontFamily } from '@/db/types';
 
 export interface FontMeta {
-  family: 'kai' | 'song' | 'ancient';
+  family: FontFamily;
   label: string;
-  /** 渲染路径：kai=hanzi-writer 精确；song=整字显现；ancient=骨架化（V1.0 阻塞） */
-  path: 'hanzi-writer' | 'whole' | 'skeleton';
+  /** 渲染路径：kai=hanzi-writer 精确；song=整字显现；seal=受限字库整字显现（不承诺笔顺） */
+  path: 'hanzi-writer' | 'whole' | 'seal-restricted';
   license: 'ArphicPL' | 'OFL' | 'System';
   licenseUrl: string;
   attribution: string;
@@ -35,14 +37,15 @@ export const FONT_CATALOG: FontMeta[] = [
     available: true,
   },
   {
-    family: 'ancient',
-    label: '小篆（开源小篆）',
-    path: 'skeleton',
+    family: 'seal',
+    label: '小篆（霞鹜篆书）',
+    path: 'seal-restricted',
     license: 'OFL',
     licenseUrl: 'https://scripts.sil.org/OFL',
-    attribution: '小篆字形计划采用开源小篆字库（OFL），发布前以骨架化模拟呈现。',
-    available: false,
-    note: '阻塞：开源小篆字库尚未发布（IM-RISK-001 R-01）。',
+    attribution:
+      '小篆字形基于《霞鹜篆书》LXGW Seal（SIL 开放字体许可 OFL 1.1），兼容 Unicode 18.0 小篆区块；采用受限字库模式，仅覆盖已收录篆字，其余字符自动跳过并提示。',
+    available: true,
+    note: '受限字库（V1.0 约 165/238 字）；不提供逐笔书写，仅整字显现。',
   },
 ];
 
@@ -53,9 +56,12 @@ export function getFontMeta(family: FontMeta['family']): FontMeta {
 // Hanzi Writer 笔画数据 CDN（Arphic UKai 笔顺数据由社区维护，按字按需加载）
 export const HANZI_WRITER_CDN = 'https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0.1/';
 
-/** 校验某字符是否可用当前字体路径渲染；古文字未就绪时返回 false（越界跳过，IM-TEST-001 §5.2）。 */
+/**
+ * 校验某字符是否可用当前字体路径渲染。
+ * - kai/song：基础汉字与常用标点均可由对应路径呈现。
+ * - seal：走受限字库逻辑，由 seal.ts 的 transformToSeal 判定越界（IM-TEST-001 §5.2）。
+ */
 export function isRenderable(_ch: string, family: FontMeta['family']): boolean {
-  if (family === 'ancient') return false; // 阻塞
-  // 基础汉字与常用标点均可由 kai/song 路径呈现
+  if (family === 'seal') return true; // 越界判定交由 seal.ts，不走此处拦截
   return true;
 }

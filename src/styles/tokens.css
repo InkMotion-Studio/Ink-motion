@@ -13,7 +13,7 @@
 
   --im-color-ink: #1c1a17; /* 墨（主文字） */
   --im-color-ink-soft: #4a4540; /* 次级文字 */
-  --im-color-ink-faint: #8a8175; /* 辅助/占位 */
+  --im-color-ink-faint: #6f675c; /* 辅助/占位（V1-C4：由 #8a8175 提深以满足 AA 4.5:1） */
 
   --im-color-line: #d8c9a8; /* 分隔线/边框 */
   --im-color-line-strong: #b9a47a;
@@ -24,6 +24,7 @@
   --im-color-bamboo-deep: #a8884f;
 
   --im-color-vermilion: #9e2b25; /* 朱砂（强调/印章/危险） */
+  --im-color-on-vermilion: #ffffff; /* 朱砂底之上的前景色（按钮文字） */
   --im-color-vermilion-soft: #c75b50;
   --im-color-gold: #b8860b; /* 金（点缀/聚焦） */
   --im-color-gold-soft: #d4af37;
@@ -103,7 +104,21 @@
   --im-color-surface-hover: #352c22;
   --im-color-ink: #f0e6cf;
   --im-color-ink-soft: #c9bda3;
-  --im-color-ink-faint: #8a8175;
+  --im-color-ink-faint: #a89e8c; /* V1-C4：深色下提亮以满足 AA 4.5:1 */
   --im-color-line: #4a4034;
   --im-color-line-strong: #6b5d47;
+  /* 载体在深色下降低明度以避免刺眼，保持材质语义 */
+  --im-color-paper: #2b241d;
+  --im-color-paper-deep: #221d18;
+  --im-color-bamboo: #5a4a30;
+  --im-color-bamboo-deep: #443620;
+  /* 强调色在深色下提亮以满足对比度 */
+  --im-color-vermilion: #e07a6f;
+  --im-color-vermilion-soft: #c75b50;
+  --im-color-on-vermilion: #1a1714; /* 深色下朱砂变亮，前景改用深墨以满足 AA 4.5:1 */
+  --im-color-gold: #e6c349;
+  --im-color-gold-soft: #d4af37;
+  --im-color-success: #7bbf8a;
+  --im-color-warning: #e6c349;
+  --im-color-danger: #e07a6f;
 }

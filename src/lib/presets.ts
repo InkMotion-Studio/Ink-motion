@@ -31,4 +31,12 @@ export const PRESET_TEMPLATES: PresetTemplate[] = [
     options: { carrier: 'paper', fontFamily: 'kai' },
     cover: '宣纸 · 楷',
   },
+  // V1-C1：新增小篆受限字库模板（覆盖字库内的《静夜思》字符）
+  {
+    id: 'preset-jingyesi-seal',
+    title: '静夜思 · 宣纸小篆',
+    text: '床前明月光，疑是地上霜。举头望明月，低头思故乡。',
+    options: { carrier: 'paper', fontFamily: 'seal' },
+    cover: '宣纸 · 篆',
+  },
 ];

@@ -17,7 +17,9 @@ export function Input({
   className = '',
   ...rest
 }: InputProps) {
-  const inputId = id ?? rest.name ?? React.useId();
+  // V1-C5：useId 必须无条件调用（react-hooks/rules-of-hooks），再与显式 id/name 合并
+  const autoId = React.useId();
+  const inputId = id ?? rest.name ?? autoId;
   const cls = ['im-input', error ? 'im-input--error' : '', className].filter(Boolean).join(' ');
   return (
     <div className="im-field">

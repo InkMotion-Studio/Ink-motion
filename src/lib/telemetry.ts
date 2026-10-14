@@ -3,6 +3,7 @@
 // 默认「本地模式」：错误写入 IndexedDB 环形缓冲，供用户自查；Sentry 类接入须显式开启且用户授权。
 
 import { setSetting, getSetting } from '@/db/database';
+import { APP_VERSION } from '@/lib/version';
 
 export interface ErrorReport {
   id: string;
@@ -24,7 +25,6 @@ export interface TelemetryConfig {
   maxLocal: number;
 }
 
-const APP_VERSION = '0.1.0';
 const LOCAL_KEY = 'errorLog';
 const DEFAULT_CFG: TelemetryConfig = { enabled: false, maxLocal: 50 };
 

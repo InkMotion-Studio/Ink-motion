@@ -28,7 +28,8 @@ export function Select({
   className = '',
   ...rest
 }: SelectProps) {
-  const selectId = id ?? React.useId();
+  const autoId = React.useId(); // V1-C5：无条件调用（rules-of-hooks）
+  const selectId = id ?? autoId;
   const cls = ['im-select', error ? 'im-select--error' : '', className].filter(Boolean).join(' ');
   return (
     <div className="im-field">

@@ -57,8 +57,8 @@ describe('工程导入导出（N3.5）', () => {
 });
 
 describe('预设模板（N3.1）', () => {
-  it('提供 3 个硬编码预设', () => {
-    expect(PRESET_TEMPLATES.length).toBe(3);
+  it('提供 4 个硬编码预设（含 V1-C2 新增小篆模板）', () => {
+    expect(PRESET_TEMPLATES.length).toBe(4);
     for (const t of PRESET_TEMPLATES) {
       expect(t.text.length).toBeGreaterThan(0);
       expect(t.title.length).toBeGreaterThan(0);
@@ -67,11 +67,12 @@ describe('预设模板（N3.1）', () => {
 });
 
 describe('字体目录与许可（N1.4）', () => {
-  it('楷体可用且为精确路径，古文字阻塞', () => {
+  it('楷体可用且为精确路径，古文字 V1.0 已可用（受限字库）', () => {
     expect(getFontMeta('kai').available).toBe(true);
     expect(getFontMeta('kai').path).toBe('hanzi-writer');
-    expect(getFontMeta('ancient').available).toBe(false);
-    expect(isRenderable('永', 'ancient')).toBe(false);
+    expect(getFontMeta('seal').available).toBe(true); // V1.0 受限字库模式可用
+    expect(getFontMeta('seal').path).toBe('seal-restricted');
+    expect(isRenderable('永', 'seal')).toBe(true); // 越界判定交由 seal.ts
     expect(isRenderable('永', 'kai')).toBe(true);
   });
 

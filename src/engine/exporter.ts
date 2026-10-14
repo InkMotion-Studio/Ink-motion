@@ -29,6 +29,20 @@ export interface ExportRequest {
   render: (ctx: CanvasRenderingContext2D, t: number) => void;
   preferMp4?: boolean;
   onProgress?: (p: number) => void;
+  /** V1-C3 N3.4：取消信号（abort 时抛出 AbortError） */
+  signal?: AbortSignal;
+}
+
+/** 导出被取消时抛出的错误（调用方据此区分"用户取消"与"失败"） */
+export class ExportAbortError extends Error {
+  constructor() {
+    super('导出已取消');
+    this.name = 'ExportAbortError';
+  }
+}
+
+function throwIfAborted(signal?: AbortSignal) {
+  if (signal?.aborted) throw new ExportAbortError();
 }
 
 export interface ExportResult {
@@ -86,6 +100,7 @@ function exportWebm(req: ExportRequest): Promise<ExportResult> {
   const start = performance.now();
   rec.start(100);
   const tick = () => {
+    throwIfAborted(req.signal); // V1-C3 N3.4：取消导出
     const elapsed = performance.now() - start;
     const t = Math.min(durationMs, elapsed);
     render(ctx, t);
@@ -123,6 +138,7 @@ async function exportMp4(req: ExportRequest): Promise<ExportResult> {
 
   const totalFrames = Math.max(1, Math.ceil((durationMs / 1000) * fps));
   for (let i = 0; i < totalFrames; i++) {
+    throwIfAborted(req.signal); // V1-C3 N3.4：取消导出
     const t = (i / totalFrames) * durationMs;
     render(ctx, t);
     const frame = new VideoFrame(canvas, { timestamp: Math.round((i * 1e6) / fps) });

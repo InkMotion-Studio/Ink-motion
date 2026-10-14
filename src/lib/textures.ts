@@ -1,13 +1,14 @@
 // 纹理加载（N0.4 CDN 资产 → Cache API）。
+// V1-C5 N5.1：URL 统一由 lib/assets.ts 版本化资产清单提供（v2 命名空间）。
 // 纹理为可选增强：加载失败时载体回退程序化渲染，不影响功能。
+
+import { assetUrl } from '@/lib/assets';
 
 const cache = new Map<string, HTMLImageElement | null>();
 const pending = new Map<string, Promise<HTMLImageElement | null>>();
 
 function urlFor(name: 'paper' | 'bamboo'): string {
-  const base = (import.meta.env?.VITE_ASSET_CDN as string | undefined) ?? '/';
-  const b = base.endsWith('/') ? base : base + '/';
-  return `${b}textures/${name}.png`;
+  return assetUrl(name === 'paper' ? 'texture-paper' : 'texture-bamboo');
 }
 
 /** 同步取回已加载纹理（不触发加载）。 */
