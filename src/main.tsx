@@ -9,6 +9,8 @@ import { preloadTextures } from '@/lib/textures';
 import { initTelemetry } from '@/lib/telemetry';
 import { registerSealFont } from '@/lib/seal';
 import { registerLiFont } from '@/lib/lishu';
+import { setCustomStrokeLoader } from '@/engine/customStroke';
+import { listCustomStrokes } from '@/db/database';
 import './styles/global.css';
 import './components/components.css';
 
@@ -23,6 +25,8 @@ async function bootstrap() {
   registerSealFont().catch(() => undefined);
   // V2-C2：注册隶书字体（资产待提供，缺失时静默跳过；失败不阻断首屏）
   registerLiFont().catch(() => undefined);
+  // V2-C7 C4：注入用户定制兜底层（C 层）数据源（IndexedDB → 引擎内存缓存）
+  setCustomStrokeLoader(() => listCustomStrokes());
 
   // V1-C2 N2.1：主题驱动 <html data-theme>，并订阅后续切换
   const applyTheme = (theme: string) => {

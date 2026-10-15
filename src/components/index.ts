@@ -11,6 +11,7 @@ export type { SealCharsetPanelProps } from './SealCharsetPanel';
 export { LiCharsetPanel } from './LiCharsetPanel';
 export type { LiCharsetPanelProps } from './LiCharsetPanel';
 export { FontManager } from './FontManager';
+export { CustomStrokeManager } from './CustomStrokeManager';
 export type { ButtonProps, ButtonVariant, ButtonSize } from './Button';
 export { Input } from './Input';
 export type { InputProps } from './Input';

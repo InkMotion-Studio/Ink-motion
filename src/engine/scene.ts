@@ -1,9 +1,9 @@
 // 场景编排：整合排版 + 笔画 + 载体，按时间线逐帧绘制（预览与导出共用）。
 import { layoutText } from './layout';
-import { loadStrokeData, drawKaiGlyph, drawSongGlyph, drawSealGlyph, drawLiGlyph, drawGlyphOutline, isBlockedPath } from './stroke';
+import { loadStrokeData, isCjkWithOrder, drawSongGlyph, drawSealGlyph, drawLiGlyph, drawGlyphOutline, drawKaiGlyph, buildStrokePaths, isBlockedPath } from './stroke';
 import { renderCarrier } from './carrier';
-import { parseGlyphOutline, type OutlineGlyph } from './outline';
-import type { GlyphPlacement, HanziStrokeData, LayoutResult } from './types';
+import { parseGlyphOutline, getKaiOutline, type OutlineGlyph } from './outline';
+import type { GlyphPlacement, StrokeOrderResult, LayoutResult } from './types';
 import type { CarrierType, FontFamily } from '@/db/types';
 import { loadSealCharset, loadSealRegistry, mergedSealCharset, transformToSeal, type SealLayerSetting, SEAL_FONT_URL } from '@/lib/seal';
 import { loadLiCharset, transformToLi, LI_FONT_URL } from '@/lib/lishu';
@@ -28,10 +28,23 @@ export interface SceneOptions {
    * 设置后，非受限路径一律以该字体栈整字显现，fontFamily 退居回退与分组依据。
    */
   customFontStack?: string;
+  // ===== V2-C7 C6：载体观感参数（透传到 renderCarrier） =====
+  /** 色温 ∈ [-1,1] */
+  warmth?: number;
+  /** 装裱边宽度比例 ∈ [0,0.15] */
+  mountRatio?: number;
+  /** 老化/做旧强度 ∈ [0,1] */
+  aging?: number;
+  /** 钤印预定位 */
+  sealPos?: 'none' | 'tr' | 'br' | 'bl' | 'tl';
+  // ===== V2-C7 C7 BUG-006：长文预加载进度回调（loaded/total，total 为待加载去重字符数）=====
+  onProgress?: (loaded: number, total: number) => void;
 }
 
 const PER_STROKE_MS = 110; // 每笔画书写时长（受 writingSpeed 缩放）
-const WHOLE_MS = 220; // 宋体整字显现时长
+const WHOLE_MS = 220; // 整字显现基准时长（C5：改为按笔画数缩放，见 buildTimings）
+/** C5：无本地笔顺数据时，整字显现的等效笔画数估算（与 kai 的计时口径拉齐）。 */
+const ESTIMATED_STROKE_COUNT = 8;
 
 interface GlyphTiming {
   glyph: GlyphPlacement;
@@ -44,8 +57,15 @@ export class Scene {
   layout: LayoutResult;
   readonly timings: GlyphTiming[] = [];
   totalDurationMs = 0;
-  private readonly data = new Map<string, HanziStrokeData | null>();
-  /** V2-C2 N2.3：字形轮廓缓存（仅 seal/li 且开启描边时预解析；失败为 null → 降级整字填充） */
+  /**
+   * C5：构造期确定的实际渲染路径。
+   * 此前 preloadOutlines 用 `opts.fontFamily !== 'kai'` 判断，导致 brush / 自定义字体
+   * （fontFamily 可能是 'song' 或任意值）被误判。现统一以 path 字段为依据。
+   */
+  readonly path: 'kai' | 'song' | 'seal' | 'li';
+  // C2：权威笔顺缓存（数据源本地内置，零网络）。null = 本地权威表未收录 → 整字降级。
+  private readonly data = new Map<string, StrokeOrderResult | null>();
+  /** V2-C2 N2.3：字形轮廓缓存（seal/li 开启描边预解析；kai 由 C3 加载楷体轮廓）。失败为 null → 降级整字填充 */
   private readonly outlines = new Map<string, OutlineGlyph | null>();
 
   constructor(opts: SceneOptions) {
@@ -62,6 +82,7 @@ export class Scene {
         : opts.fontFamily === 'li'
           ? 'li'
           : 'kai';
+    this.path = path;
     // 古文字路径：构造期先以原文本排版；preload 中加载字表后再映射为小篆码位并重排
     const renderText = opts.text;
     this.layout = layoutText({
@@ -75,16 +96,20 @@ export class Scene {
     this.buildTimings(ordered);
   }
 
+  /**
+   * C5：统一计时线——所有路径均按「实际/估算笔画数 × PER_STROKE_MS」推进。
+   * 此前 song 走固定 WHOLE_MS，导致同一文本切换字体时长跳变；
+   * 现统一口径：有本地笔顺用真实笔数，无则用 ESTIMATED_STROKE_COUNT 估算。
+   */
   private buildTimings(ordered: GlyphPlacement[]): void {
     this.timings.length = 0;
     let t = 0;
     const speed = Math.max(0.25, this.opts.writingSpeed);
     for (const g of ordered) {
+      const strokes = g.strokeCount > 0 ? g.strokeCount : ESTIMATED_STROKE_COUNT;
       const dur = g.isPunct
         ? WHOLE_MS * 0.5
-        : g.path === 'song'
-          ? WHOLE_MS / speed
-          : (g.strokeCount * PER_STROKE_MS) / speed;
+        : Math.max(WHOLE_MS, (strokes * PER_STROKE_MS)) / speed;
       this.timings.push({ glyph: g, start: t, dur });
       t += dur;
     }
@@ -149,9 +174,15 @@ export class Scene {
       }
     }
     const chars = Array.from(new Set(this.layout.glyphs.map((g) => g.char))).filter(
-      (c) => c.trim().length > 0 && !this.data.has(c),
+      (c) => c.trim().length > 0 && !this.data.has(c) && isCjkWithOrder(c),
     );
+    // C2：根除 BUG-003——预加载仅对「CJK 且可能拥有本地权威笔顺」的字发起查表（零网络 404）。
+    // 标点 / 字母 / 数字 / 生僻字一律跳过，不再请求任何外部资源。
     // V1-C4 N4.3：长文分块预加载——每 200 字让出主线程，避免 5000 字时冻结 UI
+    // V2-C7 C7 BUG-006：新增进度回调，供编辑器显示「正在准备」进度，长文期间界面不静默。
+    const total = chars.length;
+    let loaded = 0;
+    this.opts.onProgress?.(0, total);
     const CHUNK = 200;
     for (let i = 0; i < chars.length; i += CHUNK) {
       const batch = chars.slice(i, i + CHUNK);
@@ -160,15 +191,17 @@ export class Scene {
           if (!this.data.has(c)) this.data.set(c, await loadStrokeData(c));
         }),
       );
+      loaded += batch.length;
+      this.opts.onProgress?.(loaded, total);
       // 让出主线程（最后一批无需让出）
       if (i + CHUNK < chars.length) {
         await new Promise((r) => setTimeout(r, 0));
       }
     }
-    // 用真实笔画数更新计时线（缺失字保持估计值并走整字降级）
+    // C2：用权威笔顺长度更新计时线（缺失字保持估计值并走整字降级）
     for (const g of this.layout.glyphs) {
       const d = this.data.get(g.char);
-      if (d && d.medians.length > 0) g.strokeCount = d.medians.length;
+      if (d && d.strokeCount > 0) g.strokeCount = d.strokeCount;
     }
     const ordered = [...this.layout.glyphs].sort((a, b) => a.order - b.order);
     this.buildTimings(ordered);
@@ -177,14 +210,19 @@ export class Scene {
   }
 
   /**
-   * V2-C2 N2.3：预解析受限字库（seal/li）字形轮廓，供描边动画使用。
-   * 关闭开关或非受限路径时不做任何解析（零开销）。解析失败静默（缓存 null，绘制时降级整字填充）。
+   * V2-C2 N2.3 / C3 / C5：预解析字形轮廓，供描边动画使用。
+   * - seal/li：运行时解析受限字库 woff2（parseGlyphOutline）
+   * - kai（C3）：加载本地楷体轮廓（getKaiOutline，零网络，来自 build-kai-outline.py）
+   * - C5 新增：**自定义/重字体（song 路径但 fontFamily==='song'）** 也尝试加载本地楷体轮廓，
+   *   若有轮廓则走逐笔（口径最一致），无则回退整字。
+   * kai 路径（C3）：轮廓逐笔为默认渲染方式，无条件预加载（零网络、成本极低）。
+   * seal/li 路径：仅当 outlineAnimation 开关开启时解析（描边动画为可选增强）。
+   * 解析失败静默（缓存 null，绘制时降级整字填充）。
    */
   private async preloadOutlines(): Promise<void> {
-    if (!this.opts.outlineAnimation) return;
-    const path = this.opts.fontFamily;
-    if (path !== 'seal' && path !== 'li') return;
-    const fontUrl = path === 'seal' ? SEAL_FONT_URL : LI_FONT_URL;
+    const path = this.path; // C5：以构造期确定的 path 为准（修 brush/自定义字体误判）
+    // kai 不依赖 outlineAnimation 开关（逐笔是默认行为）；seal/li 需开关
+    if (path !== 'kai' && !this.opts.outlineAnimation) return;
     const chars = Array.from(new Set(this.layout.glyphs.map((g) => g.char))).filter(
       (c) => c.trim().length > 0 && !this.outlines.has(c),
     );
@@ -198,8 +236,14 @@ export class Scene {
             this.outlines.set(c, null);
             return;
           }
-          const o = await parseGlyphOutline(fontUrl, cp);
-          if (!o && typeof console !== 'undefined') {
+          let o: OutlineGlyph | null = null;
+          if (path === 'kai') {
+            // C3：本地楷体轮廓（零网络）
+            o = await getKaiOutline(c);
+          } else if (path === 'seal' || path === 'li') {
+            const fontUrl = path === 'seal' ? SEAL_FONT_URL : LI_FONT_URL;
+            o = await parseGlyphOutline(fontUrl, cp);
+          }          if (!o && typeof console !== 'undefined') {
             // 静默降级：非 error 级别，避免污染用户控制台
             console.debug('[inkmotion] outline unavailable, fallback to fill:', c);
           }
@@ -215,7 +259,7 @@ export class Scene {
     return this.outlines.get(ch) ?? null;
   }
 
-  getGlyphData(ch: string): HanziStrokeData | null {
+  getGlyphData(ch: string): StrokeOrderResult | null {
     return this.data.get(ch) ?? null;
   }
 
@@ -266,7 +310,14 @@ export class Scene {
 
   drawFrame(ctx: CanvasRenderingContext2D, t: number): void {
     const { width, height, carrier, backgroundColor } = this.opts;
-    renderCarrier(ctx, carrier, width, height, { backgroundColor });
+    // V2-C7 C6：载体参数透传（色温/装裱边/老化/钤印位）
+    renderCarrier(ctx, carrier, width, height, {
+      backgroundColor,
+      warmth: this.opts.warmth,
+      mountRatio: this.opts.mountRatio,
+      aging: this.opts.aging,
+      sealPos: this.opts.sealPos,
+    });
 
     const { dx, dy } = this.scrollOffset(t);
     ctx.save();
@@ -297,10 +348,22 @@ export class Scene {
         if (useOutline) drawGlyphOutline(ctx, g, this.getGlyphOutline(g.char)!, p, this.opts.strokeColor);
         else drawLiGlyph(ctx, g, p, this.opts.strokeColor);
       } else {
-        // 楷体：有数据则精确逐笔，否则整字降级
-        const data = this.getGlyphData(g.char);
-        if (data) drawKaiGlyph(ctx, g, data, p, this.opts.strokeColor);
-        else drawSongGlyph(ctx, g, p, this.opts.strokeColor);
+        // 楷体（C3/C5）：本地权威笔顺 + 本地楷体轮廓 → 轮廓·笔顺驱动逐笔动画（笔锋/速度曲线/墨迹浓淡）。
+        // 缺失轮廓或笔顺时整字显现降级（零网络，无静默无输出）。
+        if (g.path === 'kai') {
+          const data = this.getGlyphData(g.char);
+          const outline = this.getGlyphOutline(g.char);
+          if (data && outline && outline.contours.length > 0) {
+            const paths = buildStrokePaths(outline, data.strokeCount);
+            drawKaiGlyph(ctx, g, paths, p, this.opts.strokeColor);
+          } else {
+            const stack = this.opts.customFontStack ?? getBuiltinFontStack(this.opts.fontFamily);
+            drawSongGlyph(ctx, g, p, this.opts.strokeColor, stack);
+          }
+        } else {
+          // 兜底（理论上不会走到）：整字显现
+          drawSongGlyph(ctx, g, p, this.opts.strokeColor);
+        }
       }
     }
     ctx.restore();

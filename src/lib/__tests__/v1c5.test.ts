@@ -170,7 +170,8 @@ describe('V1-C5 N5.2 许可合规登记', () => {
     for (const l of req) {
       expect(l.license).toBeTruthy();
       expect(l.url).toMatch(/^https:\/\//);
-      expect(l.usage.length).toBeGreaterThan(0);
+      // V2-C7 C7 BUG-004：用途说明改走 i18n 键
+      expect(l.usageKey.length).toBeGreaterThan(0);
     }
   });
 
@@ -189,9 +190,10 @@ describe('V1-C5 N5.2 许可合规登记', () => {
   it('TC-V1-LIC-03 许可条目字段完整（名称/许可/链接/用途/分类）', () => {
     for (const l of THIRD_PARTY_LICENSES) {
       expect(l.name).toBeTruthy();
+      expect(l.key).toBeTruthy();
       expect(l.license).toBeTruthy();
       expect(l.url).toMatch(/^https:\/\//);
-      expect(l.usage).toBeTruthy();
+      expect(l.usageKey).toBeTruthy();
       expect(['font', 'runtime', 'build']).toContain(l.category);
     }
   });

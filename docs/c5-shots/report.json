@@ -1,0 +1,86 @@
+{
+  "results": [
+    {
+      "name": "可进入编辑器",
+      "ok": true,
+      "detail": "http://localhost:4173/#/editor/a487e0e1-28a6-420c-9567-600409929b29"
+    },
+    {
+      "name": "文本已录入",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "找到字体选择器",
+      "ok": true,
+      "detail": "共 4 个 select"
+    },
+    {
+      "name": "字体 kai 截图已保存",
+      "ok": true,
+      "detail": "docs/c5-shots/font-kai.png"
+    },
+    {
+      "name": "字体 song 截图已保存",
+      "ok": true,
+      "detail": "docs/c5-shots/font-song.png"
+    },
+    {
+      "name": "字体 brush 截图已保存",
+      "ok": true,
+      "detail": "docs/c5-shots/font-brush.png"
+    },
+    {
+      "name": "字体 seal 截图已保存",
+      "ok": true,
+      "detail": "docs/c5-shots/font-seal.png"
+    },
+    {
+      "name": "字体 li 截图已保存",
+      "ok": true,
+      "detail": "docs/c5-shots/font-li.png"
+    },
+    {
+      "name": "canvas 存在并捕获多帧",
+      "ok": true,
+      "detail": "pixels=2073600"
+    },
+    {
+      "name": "kai 逐笔：多帧画面差异非零（逐笔推进而非整字闪现）",
+      "ok": true,
+      "detail": "diffs=7,4,2"
+    },
+    {
+      "name": "零外网请求",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "零失败请求（无 404）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "零页面异常",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "零控制台错误",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "externalRequests": [],
+  "failedRequests": [],
+  "pageErrors": [],
+  "consoleErrors": [],
+  "frameDiffs": {
+    "total": 2073600,
+    "d": [
+      7,
+      4,
+      2
+    ]
+  }
+}

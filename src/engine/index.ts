@@ -5,10 +5,37 @@ export type { LayoutInput } from './layout';
 export {
   loadStrokeData,
   preloadStrokeData,
+  invalidateStrokeDataCache,
   drawKaiGlyph,
   drawSongGlyph,
+  buildStrokePaths,
   isBlockedPath,
 } from './stroke';
+export type { StrokePaths, FlatSeg } from './stroke';
+// C5：统一书写基元（观感层）
+export {
+  DEFAULT_INK_STYLE,
+  WHOLE_GLYPH_INK_STYLE,
+  OUTLINE_INK_STYLE,
+  inkStyle,
+  easeSinceWrite,
+  linearProgress,
+  progressByStyle,
+  strokeWidthAt,
+  alphaAt,
+  computeGlyphTransform,
+  applyGlyphTransform,
+  outlineBox,
+  designLineWidth,
+} from './draw';
+export type { InkStyle, GlyphTransform } from './draw';
+export {
+  setCustomStrokeLoader,
+  getCustomStrokeOrder,
+  getCustomOutline,
+  invalidateCustomStrokes,
+  primeCustomStrokes,
+} from './customStroke';
 export { renderCarrier, CARRIER_PLUGINS } from './carrier';
 export type { CarrierPlugin, CarrierRenderOpts } from './carrier';
 export { Scene } from './scene';

@@ -21,6 +21,9 @@ const SUITES = [
   { name: 'V1-C3 字体上传/4K/取消', script: 'e2e/v1c3.mjs', base: 'preview' },
   { name: 'V1-C5 上线（资产 v2/许可/发布）', script: 'e2e/v1c5.mjs', base: 'preview' },
   { name: '发布检查单', script: 'e2e/release-check.mjs', base: 'preview' },
+  { name: 'V2-C7 C5 书写引擎与观感', script: 'e2e/v2c7c5.mjs', base: 'preview' },
+  { name: 'V2-C7 C6 载体体系重构', script: 'e2e/v2c7c6.mjs', base: 'preview' },
+  { name: 'V2-C7 C7 整合回归（缺陷修复）', script: 'e2e/v2c7c7.mjs', base: 'preview' },
   { name: '无障碍审计（明/暗双主题）', script: 'e2e/a11y.mjs', base: 'preview' },
 ];
 

@@ -87,7 +87,8 @@ const oflLinkCount = await p.locator('a[href="/fonts/seal/OFL.txt"]').count();
 ck('V1-C2-1','关于页提供随包 OFL.txt 本地查阅入口（许可随分发）', oflLinkCount>=1, `命中 ${oflLinkCount}`);
 ck('V1-C2-2','关于页含第三方许可与致谢清单（字体须署名）',
   /第三方许可与致谢/.test(aboutTxt) && /须署名/.test(aboutTxt), '已列出');
-ck('V1-C2-3','关于页含开源组件清单', /开源组件/.test(aboutTxt) && /Hanzi Writer/.test(aboutTxt));
+// V2-C7 C7：Hanzi Writer 已在 C2 移除，改断言当前实际随包的开源组件（Dexie / cnchar）
+ck('V1-C2-3','关于页含开源组件清单', /开源组件/.test(aboutTxt) && /Dexie|cnchar/.test(aboutTxt));
 ck('V1-C10-1','关于页显示 V1.0 正式版本号 1.0.0', /1\.0\.0/.test(aboutTxt), (aboutTxt.match(/版本\s*\S+/)||[''])[0]);
 // V1-C5 门禁：部署更新（N5.1）— 小篆资产同源发布 + 缓存版本化
 ck('V1-C10-2','小篆资产在构建产物中登记（同源相对路径，零外链）',
@@ -131,12 +132,16 @@ if (li>=0){ await p.locator('select').nth(li).selectOption('en'); await p.waitFo
   enTitle = (await p.textContent('h1'))?.trim() || ''; enOk = enTitle==='Settings'; }
 ck('V2-C8-2','英文切换生效（设置页标题本地化）', enOk, enTitle||'无');
 
-// 英文模式下 UI 无硬编码中文（排除语言自称/品牌墨迹/古典内容卡片）
+// 英文模式下 UI 无硬编码中文（排除语言自称/品牌墨迹/古典内容卡片/内联 CJK 示例字）
 const cnLeak = await p.evaluate(()=>{
-  const ALLOW=new Set(['简体中文','墨']);
+  // ALLOW：语言自称、品牌墨迹；永 = 笔顺编码演示用的内联示例字（非未翻译 UI）
+  const ALLOW=new Set(['简体中文','墨','永']);
   const skip=(el)=>el&&(el.tagName==='TEXTAREA'||el.tagName==='INPUT'||el.closest('.im-preset-cover')||el.closest('.im-grid-3'));
   let text=''; const walk=n=>{ if(n.nodeType===3){ if(skip(n.parentElement))return; const v=(n.nodeValue||'').trim(); if(ALLOW.has(v))return; text+=n.nodeValue||''; } else if(n.nodeType===1) for(const c of n.childNodes) walk(c); };
-  walk(document.body); return (text.match(/[\u4e00-\u9fa5]/g)||[]).length;
+  walk(document.body);
+  // 逐字统计，跳过 ALLOW 中的单字示例
+  let n=0; for(const ch of text.match(/[\u4e00-\u9fa5]/g)||[]) if(!ALLOW.has(ch)) n++;
+  return n;
 });
 ck('V2-C8-3','英文模式无硬编码中文 UI 文案', cnLeak===0, `中文字符 ${cnLeak}`);
 

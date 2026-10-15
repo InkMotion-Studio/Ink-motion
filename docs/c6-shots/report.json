@@ -1,0 +1,113 @@
+{
+  "results": [
+    {
+      "name": "可进入编辑器",
+      "ok": true,
+      "detail": "http://localhost:4173/#/editor/d92bc6d4-6ff5-4963-9283-92f1b4802ea5"
+    },
+    {
+      "name": "文本已录入",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "找到载体选择器",
+      "ok": true,
+      "detail": "4 个 select"
+    },
+    {
+      "name": "载体下拉含全部 10 种载体",
+      "ok": true,
+      "detail": "缺失: 无"
+    },
+    {
+      "name": "载体 paper 截图已保存",
+      "ok": true,
+      "detail": "docs/c6-shots/carrier-paper.png"
+    },
+    {
+      "name": "载体 scroll 截图已保存",
+      "ok": true,
+      "detail": "docs/c6-shots/carrier-scroll.png"
+    },
+    {
+      "name": "载体 handscroll 截图已保存",
+      "ok": true,
+      "detail": "docs/c6-shots/carrier-handscroll.png"
+    },
+    {
+      "name": "载体 silk 截图已保存",
+      "ok": true,
+      "detail": "docs/c6-shots/carrier-silk.png"
+    },
+    {
+      "name": "载体 letter 截图已保存",
+      "ok": true,
+      "detail": "docs/c6-shots/carrier-letter.png"
+    },
+    {
+      "name": "载体 gold 截图已保存",
+      "ok": true,
+      "detail": "docs/c6-shots/carrier-gold.png"
+    },
+    {
+      "name": "载体 bamboo 截图已保存",
+      "ok": true,
+      "detail": "docs/c6-shots/carrier-bamboo.png"
+    },
+    {
+      "name": "载体 wood 截图已保存",
+      "ok": true,
+      "detail": "docs/c6-shots/carrier-wood.png"
+    },
+    {
+      "name": "载体 rubbing 截图已保存",
+      "ok": true,
+      "detail": "docs/c6-shots/carrier-rubbing.png"
+    },
+    {
+      "name": "载体 fan 截图已保存",
+      "ok": true,
+      "detail": "docs/c6-shots/carrier-fan.png"
+    },
+    {
+      "name": "各载体画面互不相同（非同一色块套壳）",
+      "ok": true,
+      "detail": "不同对数=9/9"
+    },
+    {
+      "name": "色温参数生效（画面变化）",
+      "ok": true,
+      "detail": "diff=63048"
+    },
+    {
+      "name": "做旧参数生效（画面变化）",
+      "ok": true,
+      "detail": "diff=189"
+    },
+    {
+      "name": "零外网请求",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "零失败请求（无 404）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "零页面异常",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "零控制台错误",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "externalRequests": [],
+  "failedRequests": [],
+  "pageErrors": [],
+  "consoleErrors": []
+}

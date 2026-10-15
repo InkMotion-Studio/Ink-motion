@@ -1,0 +1,257 @@
+{
+  "source": "LXGW WenKai Lite (OFL 1.1) — 楷体字形轮廓，供 C3 轮廓·笔顺驱动逐笔动画",
+  "range": {
+    "start": 19968,
+    "end": 40959
+  },
+  "unitsPerEm": 1000,
+  "total": 18430,
+  "chunks": [
+    {
+      "file": "strokes-4E00-4FFF.json",
+      "start": 19968,
+      "end": 20479,
+      "chars": 453
+    },
+    {
+      "file": "strokes-5000-51FF.json",
+      "start": 20480,
+      "end": 20991,
+      "chars": 452
+    },
+    {
+      "file": "strokes-5200-53FF.json",
+      "start": 20992,
+      "end": 21503,
+      "chars": 450
+    },
+    {
+      "file": "strokes-5400-55FF.json",
+      "start": 21504,
+      "end": 22015,
+      "chars": 474
+    },
+    {
+      "file": "strokes-5600-57FF.json",
+      "start": 22016,
+      "end": 22527,
+      "chars": 456
+    },
+    {
+      "file": "strokes-5800-59FF.json",
+      "start": 22528,
+      "end": 23039,
+      "chars": 449
+    },
+    {
+      "file": "strokes-5A00-5BFF.json",
+      "start": 23040,
+      "end": 23551,
+      "chars": 419
+    },
+    {
+      "file": "strokes-5C00-5DFF.json",
+      "start": 23552,
+      "end": 24063,
+      "chars": 444
+    },
+    {
+      "file": "strokes-5E00-5FFF.json",
+      "start": 24064,
+      "end": 24575,
+      "chars": 455
+    },
+    {
+      "file": "strokes-6000-61FF.json",
+      "start": 24576,
+      "end": 25087,
+      "chars": 438
+    },
+    {
+      "file": "strokes-6200-63FF.json",
+      "start": 25088,
+      "end": 25599,
+      "chars": 471
+    },
+    {
+      "file": "strokes-6400-65FF.json",
+      "start": 25600,
+      "end": 26111,
+      "chars": 445
+    },
+    {
+      "file": "strokes-6600-67FF.json",
+      "start": 26112,
+      "end": 26623,
+      "chars": 444
+    },
+    {
+      "file": "strokes-6800-69FF.json",
+      "start": 26624,
+      "end": 27135,
+      "chars": 456
+    },
+    {
+      "file": "strokes-6A00-6BFF.json",
+      "start": 27136,
+      "end": 27647,
+      "chars": 427
+    },
+    {
+      "file": "strokes-6C00-6DFF.json",
+      "start": 27648,
+      "end": 28159,
+      "chars": 463
+    },
+    {
+      "file": "strokes-6E00-6FFF.json",
+      "start": 28160,
+      "end": 28671,
+      "chars": 449
+    },
+    {
+      "file": "strokes-7000-71FF.json",
+      "start": 28672,
+      "end": 29183,
+      "chars": 414
+    },
+    {
+      "file": "strokes-7200-73FF.json",
+      "start": 29184,
+      "end": 29695,
+      "chars": 452
+    },
+    {
+      "file": "strokes-7400-75FF.json",
+      "start": 29696,
+      "end": 30207,
+      "chars": 449
+    },
+    {
+      "file": "strokes-7600-77FF.json",
+      "start": 30208,
+      "end": 30719,
+      "chars": 428
+    },
+    {
+      "file": "strokes-7800-79FF.json",
+      "start": 30720,
+      "end": 31231,
+      "chars": 424
+    },
+    {
+      "file": "strokes-7A00-7BFF.json",
+      "start": 31232,
+      "end": 31743,
+      "chars": 428
+    },
+    {
+      "file": "strokes-7C00-7DFF.json",
+      "start": 31744,
+      "end": 32255,
+      "chars": 438
+    },
+    {
+      "file": "strokes-7E00-7FFF.json",
+      "start": 32256,
+      "end": 32767,
+      "chars": 479
+    },
+    {
+      "file": "strokes-8000-81FF.json",
+      "start": 32768,
+      "end": 33279,
+      "chars": 445
+    },
+    {
+      "file": "strokes-8200-83FF.json",
+      "start": 33280,
+      "end": 33791,
+      "chars": 463
+    },
+    {
+      "file": "strokes-8400-85FF.json",
+      "start": 33792,
+      "end": 34303,
+      "chars": 443
+    },
+    {
+      "file": "strokes-8600-87FF.json",
+      "start": 34304,
+      "end": 34815,
+      "chars": 458
+    },
+    {
+      "file": "strokes-8800-89FF.json",
+      "start": 34816,
+      "end": 35327,
+      "chars": 451
+    },
+    {
+      "file": "strokes-8A00-8BFF.json",
+      "start": 35328,
+      "end": 35839,
+      "chars": 440
+    },
+    {
+      "file": "strokes-8C00-8DFF.json",
+      "start": 35840,
+      "end": 36351,
+      "chars": 461
+    },
+    {
+      "file": "strokes-8E00-8FFF.json",
+      "start": 36352,
+      "end": 36863,
+      "chars": 461
+    },
+    {
+      "file": "strokes-9000-91FF.json",
+      "start": 36864,
+      "end": 37375,
+      "chars": 462
+    },
+    {
+      "file": "strokes-9200-93FF.json",
+      "start": 37376,
+      "end": 37887,
+      "chars": 430
+    },
+    {
+      "file": "strokes-9400-95FF.json",
+      "start": 37888,
+      "end": 38399,
+      "chars": 469
+    },
+    {
+      "file": "strokes-9600-97FF.json",
+      "start": 38400,
+      "end": 38911,
+      "chars": 453
+    },
+    {
+      "file": "strokes-9800-99FF.json",
+      "start": 38912,
+      "end": 39423,
+      "chars": 453
+    },
+    {
+      "file": "strokes-9A00-9BFF.json",
+      "start": 39424,
+      "end": 39935,
+      "chars": 447
+    },
+    {
+      "file": "strokes-9C00-9DFF.json",
+      "start": 39936,
+      "end": 40447,
+      "chars": 459
+    },
+    {
+      "file": "strokes-9E00-9FFF.json",
+      "start": 40448,
+      "end": 40959,
+      "chars": 478
+    }
+  ]
+}

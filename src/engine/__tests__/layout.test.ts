@@ -77,7 +77,7 @@ describe('N2.6 场景时间线', () => {
     expect(fast.totalDurationMs).toBeLessThan(slow.totalDurationMs);
   });
 
-  it('宋体路径按整字计时（与笔画数无关）', () => {
+  it('C5：宋体路径计时与楷体口径统一（按笔画数缩放，不再是固定 220ms）', () => {
     const scene = new Scene({
       text: '永',
       width: 1080,
@@ -90,6 +90,10 @@ describe('N2.6 场景时间线', () => {
       writingSpeed: 1,
       scrollEnabled: false,
     });
-    expect(scene.timings[0].dur).toBeLessThan(300);
+    // C5 前：song 恒为 WHOLE_MS=220ms。C5 起按 ESTIMATED_STROKE_COUNT(8) × 110ms = 880ms，
+    // 与 kai 同文本时长可比（切换字体不再跳变）。
+    const d = scene.timings[0].dur;
+    expect(d).toBeGreaterThanOrEqual(220);
+    expect(d).toBeLessThanOrEqual(8 * 110);
   });
 });

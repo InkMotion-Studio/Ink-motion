@@ -166,7 +166,7 @@ export function AboutPage() {
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
           {optional.map((l) => (
             <li
-              key={l.name}
+              key={l.key}
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -182,7 +182,7 @@ export function AboutPage() {
                 {l.name}
                 <span style={{ color: 'var(--im-color-ink-faint)', fontSize: 'var(--im-fs-xs)' }}>
                   {' '}
-                  — {l.usage}
+                  — {t(l.usageKey)}
                 </span>
               </span>
               <span style={{ fontSize: 'var(--im-fs-xs)' }}>{l.license}</span>

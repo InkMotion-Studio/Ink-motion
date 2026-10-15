@@ -43,7 +43,12 @@ await page.waitForTimeout(500);
 await page.click('.im-grid-3 >> nth=0 >> text=用此模板');
 await page.waitForTimeout(2500);
 
-const specSelect = page.locator('.im-options__group >> nth=4 >> select');
+// 定位「画布规格」下拉：按选项内容（含 2160 的 4K 项）识别，避免新增参数组导致索引漂移
+const specSelect = page
+  .locator('.im-options__group')
+  .filter({ has: page.locator('option', { hasText: /2160/ }) })
+  .locator('select')
+  .first();
 const specOptions = await specSelect.locator('option').allTextContents();
 check('画布规格含 4K 选项', specOptions.some((o) => /2160/.test(o)), specOptions.join(' | '));
 

@@ -152,7 +152,7 @@ describe('多路径互不干扰（GLY-10 / V2-C2）', () => {
   it('字体目录四路径齐全且各自路径标识不同', () => {
     const paths = FONT_CATALOG.map((f) => f.path);
     expect(new Set(paths).size).toBe(4);
-    expect(paths).toContain('hanzi-writer');
+    expect(paths).toContain('kai');
     expect(paths).toContain('whole');
     expect(paths).toContain('seal-restricted');
     expect(paths).toContain('li-restricted');
@@ -162,7 +162,8 @@ describe('多路径互不干扰（GLY-10 / V2-C2）', () => {
     for (const f of FONT_CATALOG) {
       expect(f.license).toBeTruthy();
       expect(f.licenseUrl).toMatch(/^https?:\/\//);
-      expect(f.attribution).toBeTruthy();
+      // V2-C7 C7 BUG-004：署名改走 i18n 键
+      expect(f.attributionKey).toBeTruthy();
       expect(f.available).toBe(true);
     }
   });

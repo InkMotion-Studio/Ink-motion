@@ -2,7 +2,21 @@
 
 // V2-C4 N4.2：新增 brush（马善政毛笔楷）；v2 为 kai/song/seal/li，v3 追加 brush（向后兼容）
 export type FontFamily = 'kai' | 'song' | 'brush' | 'seal' | 'li';
-export type CarrierType = 'paper' | 'bamboo'; // 宣纸卷轴 / 竹简
+/**
+ * V2-C7 C6：载体扩为 10 种中国真实传统形制（原仅 paper/bamboo）。
+ * 保留 paper/bamboo 键名不变，既有项目数据向后兼容。
+ */
+export type CarrierType =
+  | 'paper' // 宣纸卷轴
+  | 'scroll' // 立轴
+  | 'handscroll' // 手卷
+  | 'silk' // 绢帛
+  | 'letter' // 信笺
+  | 'gold' // 洒金笺
+  | 'bamboo' // 竹简
+  | 'wood' // 木牍
+  | 'rubbing' // 碑拓
+  | 'fan'; // 团扇
 
 /** 渲染与导出参数（编辑器参数面板的唯一真相来源） */
 export interface ProjectOptions {
@@ -23,6 +37,15 @@ export interface ProjectOptions {
    * 设置后，渲染走该字体的真实字形（整字显现），fontFamily 仅作为回退与分组依据。
    */
   customFontId?: string;
+  // ===== V2-C7 C6：载体观感参数（全部可选，缺省沿用各载体默认） =====
+  /** 色温 ∈ [-1,1]：-1 冷 / 0 中性 / 1 暖 */
+  warmth?: number;
+  /** 装裱边宽度比例 ∈ [0,0.15]（立轴/手卷/绢帛生效） */
+  mountRatio?: number;
+  /** 老化/做旧强度 ∈ [0,1] */
+  aging?: number;
+  /** 钤印预定位 */
+  sealPos?: 'none' | 'tr' | 'br' | 'bl' | 'tl';
 }
 
 export const DEFAULT_OPTIONS: ProjectOptions = {
@@ -50,7 +73,7 @@ export interface Project {
 }
 
 export type FontSource = 'system' | 'preset' | 'uploaded';
-export type FontFormat = 'truetype' | 'opentype' | 'woff2' | 'hanzi-writer-data';
+export type FontFormat = 'truetype' | 'opentype' | 'woff2';
 
 export interface FontRecord {
   id: string;
@@ -74,6 +97,34 @@ export interface ExportRecord {
   durationMs: number;
   createdAt: number;
   url?: string; // 导出文件 object URL / dataURL
+}
+
+// ===== V2-C7 C4：用户定制兜底层（C 层）=====
+/**
+ * 用户自定义笔顺/字形记录（覆盖 A+B 权威表与 C3 内置轮廓）。
+ * C 层为最高优先级：命中则整字按其定制书写。
+ */
+export interface CustomStrokeRecord {
+  id: string; // uuid（= 字符，便于按字覆盖；一字一条）
+  char: string; // 被定制的字符（主键语义）
+  /** 覆盖笔顺：26 字母编码串（如 "gesl"）；缺省表示沿用 A+B 权威表 */
+  order?: string;
+  /** 覆盖字形轮廓（可选，自定义 SVG/点集路径），缺省沿用 C3 内置轮廓 */
+  outline?: CustomOutline;
+  /** 备注（用户可写来源/说明） */
+  note?: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+/** 用户自定义字形轮廓（设计坐标，与 OutlineGlyph 同构的紧凑表达）。 */
+export interface CustomOutline {
+  contours: { points: number[] }[]; // 每轮廓 [x,y,on, x,y,on, ...]
+  unitsPerEm: number;
+  xMin: number;
+  yMin: number;
+  xMax: number;
+  yMax: number;
 }
 
 export type SettingsValue =

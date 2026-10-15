@@ -1,111 +1,286 @@
 // N2.2 笔画引擎
-// 楷体 = Hanzi Writer 精确笔顺（消费其笔画中线 medians 做逐笔揭示）；
+// 楷体 = 本地权威笔顺逐笔（C2 起数据源切换为 cnchar 内置，零网络；C3 将补「字体轮廓 + 笔顺」逐笔轨迹）；
 // 宋体 = 整字显现（fillText，透明度/缩放淡入）；
 // 古文字（小篆，V1-C1 D-V1-01）= 受限字库整字显现（按 U+3D000+ 码位 fillText，不承诺笔顺）。
-import type { GlyphPlacement, HanziStrokeData } from './types';
+import type { GlyphPlacement, StrokeOrderResult } from './types';
 import type { OutlineGlyph, OutlinePoint } from './outline';
+import { hasOutline } from './outline';
 import { getSealFontStack } from '@/lib/seal';
 import { getLiFontStack } from '@/lib/lishu';
+import { getStrokeOrder } from './strokeOrder';
+import { getCustomStrokeOrder } from './customStroke';
+import {
+  applyGlyphTransform,
+  designLineWidth,
+  inkStyle,
+  outlineBox,
+  progressByStyle,
+  strokeWidthAt,
+  alphaAt,
+  WHOLE_GLYPH_INK_STYLE,
+  OUTLINE_INK_STYLE,
+  type InkStyle,
+} from './draw';
 
-const HW_CDN = 'https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0.1/';
-const STROKE_WIDTH = 70; // 1024 坐标空间内的笔宽（约为字面 7%）
+// C2/C3/C4：权威性笔顺（A+B）、用户定制（C）与字形轮廓均为本地内置/本地存储（零网络）。
 
-const dataCache = new Map<string, HanziStrokeData | null>();
+// C2/C4：笔顺缓存。键=字符；值=null 表示权威表与用户定制均未收录 → 走 C3 轮廓兜底。
+const orderCache = new Map<string, StrokeOrderResult | null>();
 
-/** 加载单字笔画数据；失败返回 null（触发整字降级，IM-TECH-001 §7.1）。 */
-export async function loadStrokeData(ch: string): Promise<HanziStrokeData | null> {
-  if (dataCache.has(ch)) return dataCache.get(ch) ?? null;
-  try {
-    const res = await fetch(HW_CDN + encodeURIComponent(ch) + '.json');
-    if (!res.ok) throw new Error('no data');
-    const data = (await res.json()) as HanziStrokeData;
-    dataCache.set(ch, data);
-    return data;
-  } catch {
-    dataCache.set(ch, null); // 记忆缺失，避免重复请求
+/**
+ * C2/C4：加载单字笔顺，优先级 C(用户定制) > A+B(权威内置)。
+ * 仅对 CJK 且可命中的字返回结果；其余（标点/字母/数字/生僻字）返回 null，
+ * 由调用方走整字/轮廓降级。彻底脱离 hanzi-writer CDN（BUG-003 根因已根除）。
+ */
+export async function loadStrokeData(ch: string): Promise<StrokeOrderResult | null> {
+  if (orderCache.has(ch)) return orderCache.get(ch) ?? null;
+  // C 层：用户定制优先（最高优先级）
+  const custom = await getCustomStrokeOrder(ch);
+  if (custom && custom.length > 0) {
+    const result: StrokeOrderResult = { order: custom, strokeCount: custom.length, source: 'user' };
+    orderCache.set(ch, result);
+    return result;
+  }
+  // A+B 层：权威内置表
+  const order = await getStrokeOrder(ch);
+  if (order == null) {
+    orderCache.set(ch, null); // 记忆缺失，避免重复查表
     return null;
   }
+  const result: StrokeOrderResult = { order, strokeCount: order.length, source: 'authority' };
+  orderCache.set(ch, result);
+  return result;
 }
 
+/** C4：用户修改定制后失效笔顺缓存，使下次查询回源最新 C 层数据。 */
+export function invalidateStrokeDataCache(): void {
+  orderCache.clear();
+}
+
+/**
+ * C2：批量预加载（仅对已判定为 CJK 且本地有数据的字发起查表，零网络 404）。
+ * 注意：调用方应先用 isCjkWithOrder 过滤，避免对无意义字符查表。
+ */
 export function preloadStrokeData(chars: string[]): Promise<void> {
   return Promise.all(chars.map((c) => loadStrokeData(c))).then(() => undefined);
 }
 
-// ===== 楷体：逐笔揭示（沿中线绘制圆头笔迹） =====
-function strokeLength(med: number[][]): number {
-  let len = 0;
-  for (let i = 1; i < med.length; i++) {
-    len += Math.hypot(med[i][0] - med[i - 1][0], med[i][1] - med[i - 1][1]);
-  }
-  return len;
+/** C2：判定字符是否可能具有本地权威笔顺（CJK 统一表意文字区块，含扩展 A）。 */
+export function isCjkWithOrder(ch: string): boolean {
+  const cp = ch.codePointAt(0);
+  if (cp == null) return false;
+  return (
+    (cp >= 0x4e00 && cp <= 0x9fff) || // CJK 基本区
+    (cp >= 0x3400 && cp <= 0x4dbf) // 扩展 A
+  );
 }
 
-function drawMedianFull(ctx: CanvasRenderingContext2D, med: number[][]) {
-  if (med.length === 0) return;
-  ctx.beginPath();
-  ctx.moveTo(med[0][0], med[0][1]);
-  for (let i = 1; i < med.length; i++) ctx.lineTo(med[i][0], med[i][1]);
-  ctx.stroke();
+// ===== 楷体：轮廓·笔顺驱动逐笔（C3） =====
+//
+// C3 起：数据源为本地权威笔顺（C1/C2）+ 本地楷体字形轮廓（build-kai-outline.py）。
+// 不依赖 hanzi-writer 中线，而是把整字轮廓展平为直线段序列，按笔顺笔画数 N 均匀分段，
+// 第 i 笔在区间 [i/N,(i+1)/N] 内按局部进度描绘——任意字体（只要 outline 可解析）均可逐笔动画。
+// 注：FlatSeg / flattenContour / QUAD_SEG 复用本文件下方 drawGlyphOutline 区域的既有定义。
+
+/** 按笔顺切分后的逐笔路径。 */
+export interface StrokePaths {
+  /** 每笔对应的直线段序列（设计坐标） */
+  strokes: FlatSeg[][];
+  /** 整字轮廓总弧长（设计坐标） */
+  total: number;
+  /**
+   * C5：源字形设计框（统一坐标变换用）。
+   * 此前由 currentOutlineBox 从段坐标实时估算，导致与 drawGlyphOutline 的包围盒来源不一致；
+   * C5 起直接随路径携带，保证两条路径的居中/缩放口径完全一致。
+   */
+  box?: { unitsPerEm: number; xMin: number; yMin: number; xMax: number; yMax: number };
 }
 
-function drawMedianPartial(ctx: CanvasRenderingContext2D, med: number[][], frac: number) {
-  if (med.length === 0 || frac <= 0) return;
-  const total = strokeLength(med);
-  const target = total * Math.min(1, frac);
-  ctx.beginPath();
-  ctx.moveTo(med[0][0], med[0][1]);
-  let acc = 0;
-  for (let i = 1; i < med.length; i++) {
-    const segLen = Math.hypot(med[i][0] - med[i - 1][0], med[i][1] - med[i - 1][1]);
-    if (acc + segLen >= target) {
-      const remain = target - acc;
-      const r = segLen === 0 ? 0 : remain / segLen;
-      ctx.lineTo(
-        med[i - 1][0] + (med[i][0] - med[i - 1][0]) * r,
-        med[i - 1][1] + (med[i][1] - med[i - 1][1]) * r,
-      );
-      break;
+/**
+ * C3：把整字轮廓展平并「按笔顺笔画数」均匀切分为 N 段笔画路径。
+ * strokeCount 来自权威笔顺 order 长度（C2）。返回可直接供 drawKaiGlyph 描出的分段。
+ */
+export function buildStrokePaths(outline: OutlineGlyph, strokeCount: number): StrokePaths {
+  const all: FlatSeg[] = [];
+  if (hasOutline(outline)) {
+    for (const c of outline.contours) {
+      for (const s of flattenContour(c.points)) all.push(s);
     }
-    acc += segLen;
-    ctx.lineTo(med[i][0], med[i][1]);
   }
-  ctx.stroke();
+  const total = all.reduce((s, x) => s + x.len, 0) || 1;
+  const n = Math.max(1, strokeCount);
+  const per = total / n;
+  const strokes: FlatSeg[][] = Array.from({ length: n }, () => []);
+  let acc = 0;
+  let idx = 0;
+  for (const s of all) {
+    // 把段分配到「当前笔画桶」，保证每桶累计弧长≈per
+    while (idx < n - 1 && acc >= per * (idx + 1)) idx++;
+    strokes[idx].push(s);
+    acc += s.len;
+  }
+  return { strokes, total, box: outlineBox(outline) };
 }
 
-/** 在 glyph 方块内绘制楷体逐笔。progress∈[0,1] 表示整个字的书写完成度。 */
+/**
+ * C3/C5：在 glyph 方块内绘制楷体逐笔（统一书写基元驱动）。
+ * progress∈[0,1] 表示整个字的书写完成度。
+ *
+ * C5 增强（观感）：
+ *   · 速度曲线——笔内进度经 progressByStyle（scribe）重映射，起笔略迟滞、行笔加速、收笔略顿；
+ *   · 笔锋——每段按笔内进度 u 用 strokeWidthAt 调线宽，起收笔收细；
+ *   · 墨迹浓淡——每段按 u 用 alphaAt 调 globalAlpha，笔画两端略淡。
+ *
+ * @param paths buildStrokePaths 产出的分段笔画路径
+ * @param style 观感参数（缺省 DEFAULT_INK_STYLE）
+ */
 export function drawKaiGlyph(
   ctx: CanvasRenderingContext2D,
   glyph: GlyphPlacement,
-  data: HanziStrokeData,
+  paths: StrokePaths,
   progress: number,
   color: string,
+  opts: { lineWidth?: number; style?: Partial<InkStyle> } = {},
 ) {
   const S = glyph.size;
-  const n = data.medians.length;
+  void S; // C5：方块尺寸由统一变换处理，此处仅保留可读性
+  const n = paths.strokes.length;
   if (n === 0) return;
   const drawn = progress * n; // 已书写的"笔画量"
+  const st = inkStyle({ color, ...(opts.style ?? {}) });
   ctx.save();
-  // Hanzi Writer 数据坐标（1024，y 向上）映射到画布方块（y 向下），保持正立
-  ctx.translate(glyph.x, glyph.y + S);
-  ctx.scale(S / 1024, -S / 1024);
-  ctx.strokeStyle = color;
-  ctx.lineWidth = STROKE_WIDTH;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
+  // C5：统一坐标变换（全工程唯一实现，替代原 currentOutlineBox 实时估算）
+  const box = paths.box ?? { unitsPerEm: 1024, xMin: 0, yMin: 0, xMax: 1024, yMax: 1024 };
+  const tf = applyGlyphTransform(ctx, glyph, box);
+  const em = box.unitsPerEm || 1024;
+  const baseW = opts.lineWidth ?? designLineWidth(st, em, tf.pxPerUnit, 0.5);
+  ctx.strokeStyle = st.color;
+  ctx.lineCap = st.round ? 'round' : 'butt';
+  ctx.lineJoin = st.round ? 'round' : 'miter';
   for (let i = 0; i < n; i++) {
-    if (i + 1 <= drawn) {
-      drawMedianFull(ctx, data.medians[i]);
-    } else if (i < drawn) {
-      drawMedianPartial(ctx, data.medians[i], drawn - i);
+    const uRaw = i + 1 <= drawn ? 1 : i < drawn ? drawn - i : null;
+    if (uRaw === null) continue;
+    // C5：笔内进度先经速度曲线重映射（scribe），再用于线宽/浓淡
+    const u = progressByStyle(uRaw, st.speedCurve);
+    const segs = paths.strokes[i];
+    if (uRaw >= 1) {
+      drawSegFull(ctx, segs, baseW * strokeWidthAt(u, st), st.color, alphaAt(u, st));
+    } else {
+      drawSegPartial(ctx, segs, u, baseW, st);
     }
   }
   ctx.restore();
 }
 
-// ===== 宋体 / 自定义字体：整字显现（淡入） =====
+function drawSegFull(
+  ctx: CanvasRenderingContext2D,
+  segs: FlatSeg[],
+  width: number,
+  color: string,
+  alpha: number,
+) {
+  const prevW = ctx.lineWidth;
+  const prevA = ctx.globalAlpha;
+  ctx.lineWidth = width;
+  ctx.strokeStyle = color;
+  ctx.globalAlpha = alpha;
+  for (const s of segs) {
+    ctx.beginPath();
+    ctx.moveTo(s.x0, s.y0);
+    ctx.lineTo(s.x1, s.y1);
+    ctx.stroke();
+  }
+  ctx.lineWidth = prevW;
+  ctx.globalAlpha = prevA;
+}
+
+function drawSegPartial(
+  ctx: CanvasRenderingContext2D,
+  segs: FlatSeg[],
+  u: number,
+  baseW: number,
+  st: InkStyle,
+) {
+  let acc = 0;
+  const total = segs.reduce((s, x) => s + x.len, 0) || 1;
+  const target = total * clamp01(u);
+  const prevW = ctx.lineWidth;
+  const prevA = ctx.globalAlpha;
+  ctx.strokeStyle = st.color;
+  for (const s of segs) {
+    if (s.len === 0) continue;
+    const remain = target - acc;
+    if (remain <= 0) break;
+    // 该段起点处的笔内进度 → 笔锋线宽 + 墨迹浓淡
+    const progressAtSeg = acc / total;
+    ctx.lineWidth = baseW * strokeWidthAt(progressAtSeg, st);
+    ctx.globalAlpha = alphaAt(progressAtSeg, st);
+    ctx.beginPath();
+    ctx.moveTo(s.x0, s.y0);
+    if (s.len <= remain) {
+      ctx.lineTo(s.x1, s.y1);
+      acc += s.len;
+    } else {
+      const r = remain / s.len;
+      ctx.lineTo(s.x0 + (s.x1 - s.x0) * r, s.y0 + (s.y1 - s.y0) * r);
+      ctx.stroke();
+      break;
+    }
+    ctx.stroke();
+  }
+  ctx.lineWidth = prevW;
+  ctx.globalAlpha = prevA;
+}
+
+function clamp01(v: number): number {
+  return v < 0 ? 0 : v > 1 ? 1 : v;
+}
+
+// ===== 整字显现（song / brush / 自定义字体 / seal / li 共用基元） =====
+//
+// C5 统一：此前 drawSongGlyph 与 drawRestrictedGlyph 两个函数体几乎完全重复（仅字号系数不同），
+// 现合并为单一 drawWholeGlyph，观感统一由 InkStyle 驱动（墨渗渐显，替代原线性 globalAlpha）。
+
 /**
- * V2-C4 N4.1：fontStack 可选。传入时使用调用方字体栈（内置宋体 / 用户上传字体 / 内置毛笔体），
- * 缺省沿用宋体栈以保持既有行为（向后兼容）。
+ * C5：整字显现统一基元。
+ * @param fontStack CSS 字体栈
+ * @param sizeRatio 字号相对方块的比例（宋体/自定义 0.92；受限字库 0.95）
+ * @param style 观感参数（缺省 WHOLE_GLYPH_INK_STYLE）
+ */
+export function drawWholeGlyph(
+  ctx: CanvasRenderingContext2D,
+  glyph: GlyphPlacement,
+  progress: number,
+  color: string,
+  fontStack?: string,
+  sizeRatio = 0.92,
+  style: Partial<InkStyle> = {},
+): void {
+  if (progress <= 0) return;
+  const st = inkStyle({ ...WHOLE_GLYPH_INK_STYLE, color, ...style });
+  const cx = glyph.x + glyph.size / 2;
+  const cy = glyph.y + glyph.size / 2;
+  const p = Math.min(1, progress);
+  ctx.save();
+  // C5：墨渗渐显——透明度 + 极轻微放大（0.985→1），替代原线性淡入的廉价感
+  const eased = p * p * (3 - 2 * p); // smoothstep
+  ctx.globalAlpha = alphaAt(0.5, st) * eased;
+  ctx.fillStyle = st.color;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const stack =
+    fontStack ?? '"Noto Serif SC", "Source Han Serif SC", "Songti SC", "SimSun", serif';
+  ctx.font = `${Math.round(glyph.size * sizeRatio)}px ${stack}`;
+  const scale = 0.985 + 0.015 * eased;
+  ctx.translate(cx, cy);
+  ctx.scale(scale, scale);
+  ctx.fillText(glyph.char, 0, 0);
+  ctx.restore();
+}
+
+/**
+ * V2-C4 N4.1：fontStack 可选。传入时使用调用方字体栈（内置宋体 / 用户上传字体 / 内置毛笔体）。
+ * C5 起内部改调 drawWholeGlyph（签名不变，向后兼容）。
  */
 export function drawSongGlyph(
   ctx: CanvasRenderingContext2D,
@@ -114,24 +289,13 @@ export function drawSongGlyph(
   color: string,
   fontStack?: string,
 ) {
-  if (progress <= 0) return;
-  const cx = glyph.x + glyph.size / 2;
-  const cy = glyph.y + glyph.size / 2;
-  ctx.save();
-  ctx.globalAlpha = Math.min(1, progress);
-  ctx.fillStyle = color;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  const stack = fontStack ?? '"Noto Serif SC", "Source Han Serif SC", "Songti SC", "SimSun", serif';
-  ctx.font = `${Math.round(glyph.size * 0.92)}px ${stack}`;
-  ctx.fillText(glyph.char, cx, cy);
-  ctx.restore();
+  drawWholeGlyph(ctx, glyph, progress, color, fontStack, 0.92);
 }
 
 // ===== 受限字库（小篆/隶书）：整字显现（按码位 fillText，整字淡入，不承诺笔顺） =====
 /**
  * V2-C2 N2.2：受限字库通用整字显现（seal/li 复用）。
- * fontStack 由调用方传入（小篆用 getSealFontStack，隶书用 getLiFontStack）。
+ * C5 起内部改调 drawWholeGlyph（签名不变，向后兼容）。
  */
 export function drawRestrictedGlyph(
   ctx: CanvasRenderingContext2D,
@@ -140,17 +304,7 @@ export function drawRestrictedGlyph(
   color: string,
   fontStack?: string,
 ): void {
-  if (progress <= 0) return;
-  const cx = glyph.x + glyph.size / 2;
-  const cy = glyph.y + glyph.size / 2;
-  ctx.save();
-  ctx.globalAlpha = Math.min(1, progress);
-  ctx.fillStyle = color;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.font = `${Math.round(glyph.size * 0.95)}px ${fontStack ?? 'serif'}`;
-  ctx.fillText(glyph.char, cx, cy);
-  ctx.restore();
+  drawWholeGlyph(ctx, glyph, progress, color, fontStack, 0.95);
 }
 
 /** 古文字（小篆）：受限字库整字显现（按小篆码位 fillText）。签名保持不变（向后兼容）。 */
@@ -185,6 +339,8 @@ export interface OutlineDrawOptions {
   lineWidth?: number;
   lineCap?: CanvasLineCap;
   lineJoin?: CanvasLineJoin;
+  /** C5：观感参数覆盖（缺省 OUTLINE_INK_STYLE） */
+  style?: Partial<InkStyle>;
 }
 
 const QUAD_SEG = 10; // 二次贝塞尔采样段数（弧长推进精度）
@@ -196,6 +352,7 @@ interface FlatSeg {
   y1: number;
   len: number;
 }
+export type { FlatSeg };
 
 /** 将单个轮廓展平为直线段序列（设计坐标），二次贝塞尔按弧长近似采样。 */
 function flattenContour(points: OutlinePoint[]): FlatSeg[] {
@@ -242,8 +399,9 @@ function flattenContour(points: OutlinePoint[]): FlatSeg[] {
 }
 
 /**
- * 沿字形轮廓描绘显现（V2-C2 N2.3）。
+ * 沿字形轮廓描绘显现（V2-C2 N2.3 / C5 统一）。
  * progress∈[0,1] 表示轮廓累计描绘完成度；仅对约 2% 的残余长度内插收尾。
+ * C5：坐标变换改走统一 applyGlyphTransform（与 drawKaiGlyph 口径一致），并接入 InkStyle 观感。
  * 无轮廓数据时应由调用方回退整字填充（本函数不做兜底）。
  */
 export function drawGlyphOutline(
@@ -258,27 +416,20 @@ export function drawGlyphOutline(
   const contours = outline.contours;
   if (contours.length === 0) return;
 
-  // 设计坐标 → 画布方块映射（y 向上翻转为 y 向下，保持正立）
-  const S = glyph.size;
-  const upm = outline.unitsPerEm || 1024;
-  // 以字体设计框居中适配方块（留 4% 边距）
-  const gw = Math.max(1, outline.xMax - outline.xMin);
-  const gh = Math.max(1, outline.yMax - outline.yMin);
-  const scale = (S * 0.92) / Math.max(gw, gh);
-
+  const st = inkStyle({ ...OUTLINE_INK_STYLE, color, ...(opts.style ?? {}) });
   ctx.save();
-  ctx.translate(glyph.x + S / 2, glyph.y + S / 2);
-  ctx.scale(scale / upm, -scale / upm);
-  ctx.translate(-(outline.xMin + gw / 2), -(outline.yMin + gh / 2));
+  // C5：统一坐标变换（消除与 drawKaiGlyph 的重复实现与包围盒来源不一致）
+  const tf = applyGlyphTransform(ctx, glyph, outlineBox(outline));
+  const em = outline.unitsPerEm || 1024;
+  const baseW = opts.lineWidth ?? designLineWidth(st, em, tf.pxPerUnit, 0.5);
 
-  ctx.strokeStyle = color;
-  ctx.lineWidth = opts.lineWidth ?? upm * 0.045; // 约 4.5% em（设计坐标）
-  ctx.lineCap = opts.lineCap ?? 'round';
-  ctx.lineJoin = opts.lineJoin ?? 'round';
+  ctx.strokeStyle = st.color;
+  ctx.lineCap = opts.lineCap ?? (st.round ? 'round' : 'butt');
+  ctx.lineJoin = opts.lineJoin ?? (st.round ? 'round' : 'miter');
+  ctx.lineWidth = baseW;
 
   const total = totalTarget(outline);
   const target = Math.min(1, progress) * total;
-  ctx.beginPath();
   let acc = 0;
   outer: for (const contour of contours) {
     const segs = flattenContour(contour.points);
@@ -286,22 +437,25 @@ export function drawGlyphOutline(
       if (s.len === 0) continue;
       const remain = target - acc;
       if (remain <= 0) break outer;
+      // C5：按已推进比例取笔锋线宽与墨迹浓淡
+      const u = acc / total;
+      ctx.lineWidth = baseW * strokeWidthAt(u, st);
+      ctx.globalAlpha = alphaAt(u, st);
+      ctx.beginPath();
+      ctx.moveTo(s.x0, s.y0);
       if (s.len <= remain) {
-        // 整段绘制
-        ctx.moveTo(s.x0, s.y0);
         ctx.lineTo(s.x1, s.y1);
         acc += s.len;
       } else {
         // 段内插值收尾
         const r = remain / s.len;
-        ctx.moveTo(s.x0, s.y0);
         ctx.lineTo(s.x0 + (s.x1 - s.x0) * r, s.y0 + (s.y1 - s.y0) * r);
-        acc = target;
+        ctx.stroke();
         break outer;
       }
+      ctx.stroke();
     }
   }
-  ctx.stroke();
   ctx.restore();
 }
 

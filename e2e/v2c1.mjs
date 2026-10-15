@@ -33,7 +33,12 @@ await page.waitForTimeout(400);
 await page.click('.im-grid-3 >> nth=0 >> text=用此模板');
 await page.waitForTimeout(2500);
 
-const fontSelect = page.locator('.im-options__group >> nth=1 >> select');
+// 按选项内容定位字体下拉（不依赖分组索引，避免新增参数组导致漂移）
+const fontSelect = page
+  .locator('.im-options__group')
+  .filter({ has: page.locator('option[value="seal"]') })
+  .locator('select')
+  .first();
 await fontSelect.selectOption('seal');
 await page.waitForTimeout(1500);
 check('参数面板出现小篆选项', (await fontSelect.inputValue()) === 'seal');

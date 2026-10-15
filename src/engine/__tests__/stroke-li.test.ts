@@ -29,6 +29,8 @@ function mockCtx() {
     font: '',
     save: vi.fn(),
     restore: vi.fn(),
+    translate: vi.fn(),
+    scale: vi.fn(),
     fillText: vi.fn(),
   } as unknown as CanvasRenderingContext2D & { fillText: ReturnType<typeof vi.fn> };
 }

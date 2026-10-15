@@ -54,8 +54,8 @@ await page.selectOption('.im-options__group >> nth=0 >> select', 'bamboo');
 await page.waitForTimeout(800);
 const bg = await page.inputValue('.im-options__group >> nth=0 >> input[type=color]');
 check('切换竹简同步载体底色', bg.toLowerCase() === '#c9b083', bg);
-// V2-C2：参数面板新增「动画」分组（字体/字号/载体/色彩/排版/动画 = 6 组）
-check('参数面板分为 6 组', (await page.$$('.im-options__group')).length === 6);
+// V2-C2 新增「动画」分组；V2-C7 C6 新增「载体观感」分组（钤印位/装裱边）→ 共 7 组
+check('参数面板分组完整（7 组）', (await page.$$('.im-options__group')).length === 7);
 
 // ---- 4. 5000 字硬上限拦截 ----
 const longText = '永'.repeat(5200);
@@ -65,9 +65,16 @@ const actualLen = await page.$eval('textarea[aria-label="正文"]', (t) => t.val
 check('正文受 maxLength 限制在 5000 内', actualLen <= 5000, `实际 ${actualLen}`);
 
 // ---- 5. Ctrl+S 保存 ----
+// 注意：正文为 5000 字时，场景重建/排版会占用主线程数秒，保存回调被推迟。
+// 固定 700ms 窗口不够，改为轮询等待（最长 8s）。
 await page.keyboard.press('Control+s');
-await page.waitForTimeout(700);
-check('保存后状态显示已保存', (await page.textContent('.im-editor__bar span[aria-live]')).includes('已保存'));
+let savedTxt = '';
+for (let i = 0; i < 20; i++) {
+  await page.waitForTimeout(400);
+  savedTxt = await page.textContent('.im-editor__bar span[aria-live]');
+  if (savedTxt.includes('已保存')) break;
+}
+check('保存后状态显示已保存', savedTxt.includes('已保存'), savedTxt.trim());
 
 // ---- 6. 导出对话框与降级信息 ----
 await page.click('text=导出视频');

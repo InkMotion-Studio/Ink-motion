@@ -69,7 +69,7 @@ describe('预设模板（N3.1）', () => {
 describe('字体目录与许可（N1.4）', () => {
   it('楷体可用且为精确路径，古文字 V1.0 已可用（受限字库）', () => {
     expect(getFontMeta('kai').available).toBe(true);
-    expect(getFontMeta('kai').path).toBe('hanzi-writer');
+    expect(getFontMeta('kai').path).toBe('kai');
     expect(getFontMeta('seal').available).toBe(true); // V1.0 受限字库模式可用
     expect(getFontMeta('seal').path).toBe('seal-restricted');
     expect(isRenderable('永', 'seal')).toBe(true); // 越界判定交由 seal.ts
@@ -82,7 +82,8 @@ describe('字体目录与许可（N1.4）', () => {
   it('每种字体都带许可与署名（合规门禁 C2）', () => {
     for (const f of FONT_CATALOG) {
       expect(f.license).toBeTruthy();
-      expect(f.attribution.length).toBeGreaterThan(0);
+      // V2-C7 C7 BUG-004：署名文案改走 i18n 键（移除硬编码中文兜底字段）
+      expect(f.attributionKey.length).toBeGreaterThan(0);
     }
   });
 });

@@ -10,6 +10,8 @@
 // 仅支持：TrueType（glyf/loca，有 cmap format 4/12）。CFF/OTF 不支持（返回 null → 降级）。
 // 复合字形：仅支持标准平移/缩放分量（无 hinting），足以覆盖常用字体。
 
+import { getCustomOutline } from './customStroke';
+
 export interface OutlinePoint {
   x: number;
   y: number;
@@ -510,9 +512,151 @@ export function hasOutline(o: OutlineGlyph | null | undefined): o is OutlineGlyp
   return !!o && o.contours.length > 0;
 }
 
-/** 测试辅助：清空解析缓存。 */
+// ===== C3：楷体字形轮廓（构建期预提取，运行期零网络按需加载） =====
+//
+// 数据由 scripts/build-kai-outline.py 从完整楷体源（LXGW WenKai Lite）提取，
+// 存于 public/kaioutline/（stvarokes-{base16}-{end16}.json + manifest），
+// 与 C1 笔顺数据同源风格。紧凑数组格式：contour.points = [x,y,on, x,y,on, ...]。
+
+interface KaiManifest {
+  range: { start: number; end: number };
+  chunks: { file: string; start: number; end: number; chars: number }[];
+  unitsPerEm: number;
+}
+const KAI_BASE = 'kaioutline/';
+let kaiManifest: KaiManifest | null = null;
+let kaiManifestLoading: Promise<KaiManifest | null> | null = null;
+const kaiChunkCache = new Map<string, Promise<Record<string, KaiRaw> | null>>();
+const kaiGlyphCache = new Map<string, OutlineGlyph | null>();
+
+interface KaiRaw {
+  contours: { points: number[]; length: number }[];
+  unitsPerEm: number;
+  xMin: number;
+  yMin: number;
+  xMax: number;
+  yMax: number;
+}
+
+async function ensureKaiManifest(): Promise<KaiManifest | null> {
+  if (kaiManifest) return kaiManifest;
+  if (kaiManifestLoading) return kaiManifestLoading;
+  kaiManifestLoading = (async () => {
+    try {
+      const res = await fetch(KAI_BASE + 'kaioutline.manifest.json');
+      if (!res.ok) return null;
+      const m = (await res.json()) as KaiManifest;
+      kaiManifest = m;
+      return m;
+    } catch {
+      return null;
+    }
+  })();
+  return kaiManifestLoading;
+}
+
+function kaiChunkFileFor(cp: number): string | null {
+  const m = kaiManifest;
+  if (!m) return null;
+  if (cp < m.range.start || cp > m.range.end) return null;
+  for (const c of m.chunks) if (cp >= c.start && cp <= c.end) return c.file;
+  return null;
+}
+
+async function loadKaiChunk(file: string): Promise<Record<string, KaiRaw> | null> {
+  if (kaiChunkCache.has(file)) return kaiChunkCache.get(file)!;
+  const p = (async () => {
+    try {
+      const res = await fetch(KAI_BASE + file);
+      if (!res.ok) return null;
+      return (await res.json()) as Record<string, KaiRaw>;
+    } catch {
+      return null;
+    }
+  })();
+  kaiChunkCache.set(file, p);
+  return p;
+}
+
+/** C3/C4：加载某汉字的楷体字形轮廓（零网络、按码位分片）。优先级 C(用户定制) > C3 内置。
+ *  非 CJK 基本区且无定制时返回 null。 */
+export async function getKaiOutline(ch: string): Promise<OutlineGlyph | null> {
+  if (kaiGlyphCache.has(ch)) return kaiGlyphCache.get(ch) ?? null;
+  // C4：用户定制轮廓优先（最高优先级）
+  const custom = await getCustomOutline(ch);
+  if (custom && custom.contours.length > 0) {
+    const contours: OutlineContour[] = custom.contours.map((c) => {
+      const pts: OutlinePoint[] = [];
+      const arr = c.points;
+      for (let i = 0; i + 2 < arr.length; i += 3) {
+        pts.push({ x: arr[i], y: arr[i + 1], on: arr[i + 2] === 1 });
+      }
+      return { points: pts, length: contourLength(pts) };
+    });
+    const glyph: OutlineGlyph = {
+      contours,
+      unitsPerEm: custom.unitsPerEm,
+      xMin: custom.xMin,
+      yMin: custom.yMin,
+      xMax: custom.xMax,
+      yMax: custom.yMax,
+    };
+    kaiGlyphCache.set(ch, glyph);
+    return glyph;
+  }
+  const cp = ch.codePointAt(0);
+  if (cp === undefined) {
+    kaiGlyphCache.set(ch, null);
+    return null;
+  }
+  const m = await ensureKaiManifest();
+  if (!m) {
+    kaiGlyphCache.set(ch, null);
+    return null;
+  }
+  const file = kaiChunkFileFor(cp);
+  if (!file) {
+    kaiGlyphCache.set(ch, null);
+    return null;
+  }
+  const chunk = await loadKaiChunk(file);
+  const raw = chunk?.[ch];
+  if (!raw) {
+    kaiGlyphCache.set(ch, null);
+    return null;
+  }
+  const contours: OutlineContour[] = raw.contours.map((c) => {
+    const pts: OutlinePoint[] = [];
+    const arr = c.points;
+    for (let i = 0; i + 2 < arr.length; i += 3) {
+      pts.push({ x: arr[i], y: arr[i + 1], on: arr[i + 2] === 1 });
+    }
+    return { points: pts, length: c.length };
+  });
+  const glyph: OutlineGlyph = {
+    contours,
+    unitsPerEm: raw.unitsPerEm,
+    xMin: raw.xMin,
+    yMin: raw.yMin,
+    xMax: raw.xMax,
+    yMax: raw.yMax,
+  };
+  kaiGlyphCache.set(ch, glyph);
+  return glyph;
+}
+
+/** 测试辅助：清空解析缓存（含 C3 楷体轮廓缓存）。 */
 export function __clearOutlineCache(): void {
   bufferCache.clear();
   glyphCache.clear();
   parsedCache = new WeakMap();
+  kaiChunkCache.clear();
+  kaiGlyphCache.clear();
+  kaiManifest = null;
+  kaiManifestLoading = null;
+}
+
+/** C4：用户修改定制轮廓后失效楷体轮廓缓存，使下次查询回源最新 C 层数据。 */
+export function invalidateKaiOutlineCache(): void {
+  kaiGlyphCache.clear();
 }

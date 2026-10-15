@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, Select, FontManager, toast } from '@/components';
+import { Button, Card, Select, FontManager, CustomStrokeManager, toast } from '@/components';
 import { useSettingsStore } from '@/store/settings';
 import { useT } from '@/lib/useI18n';
 import { registerSealFont, type SealLayerSetting } from '@/lib/seal';
@@ -130,6 +130,11 @@ export function SettingsPage() {
       <Card style={{ marginBottom: 'var(--im-space-4)' }}>
         <h2 className="im-card__title">{t('settings.fonts')}</h2>
         <FontManager />
+      </Card>
+
+      <Card style={{ marginBottom: 'var(--im-space-4)' }}>
+        <h2 className="im-card__title">{t('custom.title')}</h2>
+        <CustomStrokeManager />
       </Card>
 
       <Card style={{ marginBottom: 'var(--im-space-4)' }}>

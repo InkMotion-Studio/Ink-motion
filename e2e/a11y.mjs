@@ -108,7 +108,12 @@ await page.goto(BASE, { waitUntil: 'networkidle' });
 await page.waitForTimeout(500);
 await page.click('.im-grid-3 >> nth=0 >> text=用此模板');
 await page.waitForTimeout(2200);
-await page.locator('.im-options__group >> nth=1 >> select').selectOption('seal');
+await page
+  .locator('.im-options__group')
+  .filter({ has: page.locator('option[value="seal"]') })
+  .locator('select')
+  .first()
+  .selectOption('seal');
 await page.waitForTimeout(1200);
 await page.locator('textarea[aria-label="正文"]').fill('福寿康宁龘');
 await page.waitForTimeout(1500);

@@ -26,7 +26,20 @@ export interface LayoutResult {
   perCol: number;
 }
 
-export interface HanziStrokeData {
-  strokes: string[]; // 笔画轮廓 SVG path（1024 坐标空间）
-  medians: number[][][]; // 每笔画中线点序列
+// C5：已删除历史遗留的 HanziStrokeData 结构（含 hanzi-writer 的 strokes/medians）。
+// 自 C2 起数据源为本地权威笔顺，C3 起逐笔轨迹由「字体轮廓 + 笔顺顺序」生成，
+// 该结构全仓零引用，于 C5 清理（同时移除 package.json 中的 hanzi-writer 依赖）。
+
+/**
+ * C2：权威笔顺结果（数据源：scripts/build-strokeorder.mjs 从 cnchar 导出，
+ * 依据《现代汉语通用字笔顺规范》GF 3002-1999 及《通用规范汉字表》）。
+ * order = 26 字母笔画类型编码序列（如 "gesl"）；source = 数据来源层。
+ */
+export interface StrokeOrderResult {
+  /** 26 字母笔顺序列（如 "gesl"），逐笔动画按此顺序推进 */
+  order: string;
+  /** 笔画数（= order.length） */
+  strokeCount: number;
+  /** 数据来源：authority=A+B 层权威内置；user=C 层用户定制（C4 接入） */
+  source: 'authority' | 'user';
 }

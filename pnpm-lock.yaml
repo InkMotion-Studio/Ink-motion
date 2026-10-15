@@ -11,9 +11,6 @@ importers:
       dexie:
         specifier: ^4.0.8
         version: 4.4.6
-      hanzi-writer:
-        specifier: ^3.7.1
-        version: 3.7.3
       mp4-muxer:
         specifier: ^5.2.2
         version: 5.2.2
@@ -1081,9 +1078,6 @@ packages:
 
   graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
-
-  hanzi-writer@3.7.3:
-    resolution: {integrity: sha512-fdOFrb1cXWL/pV/oplJkcdziCvjJzhhf+qoIBm5IpVGxPBZEu4eLB6ZG5RJDbKXyNbNlyx8oIpa3XrcUBcSXpg==}
 
   has-flag@4.0.0:
     resolution: {integrity: sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==}
@@ -2678,8 +2672,6 @@ snapshots:
   gopd@1.2.0: {}
 
   graphemer@1.4.0: {}
-
-  hanzi-writer@3.7.3: {}
 
   has-flag@4.0.0: {}
 

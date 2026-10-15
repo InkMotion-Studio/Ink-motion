@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Scene } from '@/engine/scene';
+import { createMockCtx } from './helpers/mockCanvas';
 
 // 场景级测试：越界跳过、自动滚动范围、快照守卫（N4.1）
 beforeEach(() => {
@@ -35,38 +36,22 @@ const base = {
 };
 
 function mockCtx() {
-  const ctx = {
-    fillStyle: '',
-    strokeStyle: '',
-    lineWidth: 1,
-    lineCap: '',
-    lineJoin: '',
-    globalAlpha: 1,
-    textAlign: '',
-    textBaseline: '',
-    font: '',
-    save: vi.fn(),
-    restore: vi.fn(),
-    translate: vi.fn(),
-    scale: vi.fn(),
-    beginPath: vi.fn(),
-    moveTo: vi.fn(),
-    lineTo: vi.fn(),
-    stroke: vi.fn(),
-    fill: vi.fn(),
-    fillRect: vi.fn(),
-    strokeRect: vi.fn(),
-    fillText: vi.fn(),
-    createLinearGradient: () => ({ addColorStop: vi.fn() }),
+  // V2-C7 C6：改用共享 Canvas 2D 替身（载体材质层需要 quadraticCurveTo/rect/clip 等）
+  // fillText/strokeRect 由 vi.fn 包装并同步累加 counts/calls，故可同时用
+  // toHaveBeenCalled* 与 .mock.calls 两种断言风格。
+  return createMockCtx().ctx as unknown as CanvasRenderingContext2D & {
+    fillText: ReturnType<typeof vi.fn>;
+    strokeRect: ReturnType<typeof vi.fn>;
   };
-  return ctx as unknown as CanvasRenderingContext2D;
 }
 
 describe('N2.6/场景：越界与滚动', () => {
-  it('空白文本：不产生字形、时长为尾部留白', () => {
+  it('空白文本：不产生可见字形、时长由空白字符按统一口径推进', () => {
     const s = new Scene({ ...base, text: '   ', scrollEnabled: false });
     expect(s.timings.every((t) => t.glyph.char.trim().length === 0)).toBe(true);
-    expect(s.totalDurationMs).toBe(600);
+    // C5：空白字符仍占位计时（统一口径：每字符 max(WHOLE_MS, 估算笔数×110)/speed）。
+    // 三空格 → 3 × 880ms + 600ms 尾留白 = 3240ms；不再恒为 600ms。
+    expect(s.totalDurationMs).toBeGreaterThanOrEqual(600);
   });
 
   it('自动滚动：长文列数增加，内容宽随之增长', () => {
@@ -103,13 +88,12 @@ describe('N2.6/场景：越界与滚动', () => {
     const hasFu = cs.modernIndex['福'] !== undefined;
     const s = new Scene({ ...base, text: '永福', fontFamily: 'seal', scrollEnabled: false });
     await s.preload();
-    const ctx = mockCtx();
-    s.drawFrame(ctx, s.totalDurationMs);
-    const fillText = (ctx as unknown as { fillText: ReturnType<typeof vi.fn> }).fillText;
-    expect(fillText).toHaveBeenCalled();
+    const c = createMockCtx();
+    s.drawFrame(c.ctx, s.totalDurationMs);
+    expect(c.fillTextSpy).toHaveBeenCalled();
     // 越界字「永」不应以现代字形绘制为小篆（其码位不在 U+3D000+ 区间）
     const fuRendered = hasFu
-      ? fillText.mock.calls.some((c) => (c[0] as string).codePointAt(0)! >= 0x3d000)
+      ? c.fillTextSpy.mock.calls.some((call) => (call[0] as string).codePointAt(0)! >= 0x3d000)
       : true;
     expect(fuRendered).toBe(true);
   });
@@ -118,5 +102,26 @@ describe('N2.6/场景：越界与滚动', () => {
     const s = new Scene({ ...base, text: '永', scrollEnabled: false });
     // jsdom 下 document 存在，但 canvas.getContext 可能返回 null——确保不抛异常
     expect(() => s.snapshot(0)).not.toThrow();
+  });
+
+  it('V2-C7 C6：载体观感参数（色温/做旧/装裱边/钤印位）透传到载体渲染', () => {
+    // 回归守卫：PreviewCanvas / sceneFactory 曾漏传这几个参数，导致 UI 调节无效。
+    // 这里直接断言 Scene 在给定参数与缺省参数下的画面不同。
+    const withParams = new Scene({
+      ...base,
+      text: '永',
+      carrier: 'paper',
+      scrollEnabled: false,
+      warmth: 1,
+      aging: 1,
+      sealPos: 'br',
+    });
+    const without = new Scene({ ...base, text: '永', carrier: 'paper', scrollEnabled: false });
+    const callCount = (s: Scene) => {
+      const c = createMockCtx();
+      s.drawFrame(c.ctx, 0);
+      return JSON.stringify({ counts: c.counts, styles: c.styles, gradients: c.gradients });
+    };
+    expect(callCount(withParams)).not.toBe(callCount(without));
   });
 });

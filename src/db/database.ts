@@ -5,6 +5,7 @@ import type {
   ExportRecord,
   SettingRecord,
   ProjectOptions,
+  CustomStrokeRecord,
 } from './types';
 import { DEFAULT_OPTIONS } from './types';
 
@@ -15,6 +16,7 @@ class InkMotionDB extends Dexie {
   fonts!: Table<FontRecord, string>;
   exports!: Table<ExportRecord, string>;
   settings!: Table<SettingRecord, string>;
+  customstrokes!: Table<CustomStrokeRecord, string>;
 
   constructor() {
     super('inkmotion');
@@ -23,6 +25,10 @@ class InkMotionDB extends Dexie {
       fonts: 'id, family, source, name',
       exports: 'id, projectId, createdAt',
       settings: 'key',
+    });
+    // V2-C7 C4：用户定制兜底层（C 层）。新增表，不改动既有表（Dexie 增量升级）。
+    this.version(2).stores({
+      customstrokes: 'id, char, updatedAt',
     });
   }
 }
@@ -123,6 +129,106 @@ export async function getSetting<T = unknown>(key: string, fallback?: T): Promis
 
 export async function setSetting(key: string, value: SettingRecord['value']): Promise<void> {
   await db.settings.put({ key, value });
+}
+
+// ===== V2-C7 C4：用户定制兜底层（C 层）=====
+const ORDER_ALPHABET = /^[a-z]+$/; // 26 字母笔顺编码
+
+/** 校验笔顺编码串：仅允许小写字母（26 字母编码），长度 1–64 */
+export function isValidOrder(order: string): boolean {
+  return ORDER_ALPHABET.test(order) && order.length > 0 && order.length <= 64;
+}
+
+/**
+ * 写入/覆盖某字的用户定制（C 层）。id 固定为字符本身（一字一条，重复写即覆盖）。
+ * @throws 当 order 非法（非 26 字母编码）时抛错
+ */
+export async function putCustomStroke(input: {
+  char: string;
+  order?: string;
+  outline?: CustomStrokeRecord['outline'];
+  note?: string;
+}): Promise<CustomStrokeRecord> {
+  const char = input.char.trim();
+  if (char.length !== 1) throw new Error('定制字符须为单个字符');
+  if (input.order !== undefined && !isValidOrder(input.order)) {
+    throw new Error('笔顺编码非法（应为 26 字母小写序列）');
+  }
+  const now = Date.now();
+  const existing = await db.customstrokes.get(char);
+  const record: CustomStrokeRecord = {
+    id: char,
+    char,
+    order: input.order ?? existing?.order,
+    outline: input.outline ?? existing?.outline,
+    note: input.note ?? existing?.note,
+    createdAt: existing?.createdAt ?? now,
+    updatedAt: now,
+  };
+  await db.customstrokes.put(record);
+  return record;
+}
+
+export async function getCustomStroke(char: string): Promise<CustomStrokeRecord | undefined> {
+  return db.customstrokes.get(char);
+}
+
+export async function listCustomStrokes(): Promise<CustomStrokeRecord[]> {
+  return db.customstrokes.orderBy('updatedAt').reverse().toArray();
+}
+
+export async function deleteCustomStroke(char: string): Promise<void> {
+  await db.customstrokes.delete(char);
+}
+
+/** 导出全部用户定制（C 层）为可移植 JSON（版本化，供备份/分享）。 */
+export async function exportCustomStrokes(): Promise<string> {
+  const records = await db.customstrokes.toArray();
+  return JSON.stringify(
+    { type: 'inkmotion-customstrokes', version: 1, exportedAt: Date.now(), records },
+    null,
+    2,
+  );
+}
+
+/**
+ * 导入用户定制（C 层）JSON，逐条校验后合并写入（同字覆盖）。
+ * @returns { imported, skipped } 导入与跳过的条数（非法条目跳过，不中断）
+ */
+export async function importCustomStrokes(json: string): Promise<{ imported: number; skipped: number }> {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(json);
+  } catch {
+    throw new Error('JSON 解析失败');
+  }
+  const records = (parsed as { records?: unknown[] })?.records;
+  if (!Array.isArray(records)) throw new Error('缺少 records 数组');
+  let imported = 0;
+  let skipped = 0;
+  const now = Date.now();
+  for (const raw of records) {
+    const r = raw as Partial<CustomStrokeRecord>;
+    if (typeof r?.char !== 'string' || r.char.trim().length !== 1) {
+      skipped++;
+      continue;
+    }
+    if (r.order !== undefined && (typeof r.order !== 'string' || !isValidOrder(r.order))) {
+      skipped++;
+      continue;
+    }
+    await db.customstrokes.put({
+      id: r.char,
+      char: r.char,
+      order: r.order,
+      outline: r.outline,
+      note: r.note,
+      createdAt: typeof r.createdAt === 'number' ? r.createdAt : now,
+      updatedAt: now,
+    });
+    imported++;
+  }
+  return { imported, skipped };
 }
 
 export { TEXT_HARD_LIMIT, uuid };

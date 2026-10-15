@@ -100,7 +100,11 @@ check(
   /文鼎|Arphic/.test(aboutTxt) && /思源|Source Han/.test(aboutTxt) && /霞鹜|LXGW/.test(aboutTxt),
 );
 check('关于页含第三方许可与致谢卡片', /第三方许可与致谢/.test(aboutTxt));
-check('关于页含开源组件清单', /开源组件/.test(aboutTxt) && /Hanzi Writer/.test(aboutTxt));
+// V2-C7 C7：Hanzi Writer 已于 C2 移除（笔顺改本地权威内置），改为断言当前实际随包的开源组件
+check(
+  '关于页含开源组件清单',
+  /开源组件/.test(aboutTxt) && /Dexie/.test(aboutTxt) && /React/.test(aboutTxt),
+);
 const oflLink = await page.locator('a[href="/fonts/seal/OFL.txt"]').count();
 check('关于页提供随包 OFL.txt 本地查阅入口', oflLink >= 1, `命中 ${oflLink} 个链接`);
 const oflHref = oflLink ? await page.locator('a[href="/fonts/seal/OFL.txt"]').first().getAttribute('href') : '';

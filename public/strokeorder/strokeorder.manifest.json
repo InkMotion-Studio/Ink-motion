@@ -1,0 +1,286 @@
+{
+  "generatedBy": "scripts/build-strokeorder.mjs",
+  "source": "cnchar (依据《现代汉语通用字笔顺规范》GF 3002-1999 及《通用规范汉字表》)",
+  "encoding": {
+    "a": "撇点",
+    "b": "横折竖",
+    "c": "卧钩",
+    "d": "点",
+    "e": "竖",
+    "f": "横折钩/横撇",
+    "g": "横折",
+    "h": "提",
+    "i": "竖折折",
+    "j": "横",
+    "k": "横折提",
+    "l": "竖钩",
+    "m": "竖折",
+    "n": "捺",
+    "o": "弯钩",
+    "p": "撇折",
+    "q": "横折弯钩",
+    "r": "竖折",
+    "s": "撇",
+    "t": "竖提",
+    "u": "竖弯钩",
+    "v": "竖弯",
+    "w": "横折弯",
+    "x": "斜钩",
+    "y": "竖弯",
+    "z": "横折折"
+  },
+  "range": {
+    "start": 19968,
+    "end": 40959
+  },
+  "total": 6939,
+  "missing": 14053,
+  "chunks": [
+    {
+      "file": "strokes-4e00-4fff.json",
+      "start": 19968,
+      "end": 20479,
+      "chars": 270
+    },
+    {
+      "file": "strokes-5000-51ff.json",
+      "start": 20480,
+      "end": 20991,
+      "chars": 165
+    },
+    {
+      "file": "strokes-5200-53ff.json",
+      "start": 20992,
+      "end": 21503,
+      "chars": 228
+    },
+    {
+      "file": "strokes-5400-55ff.json",
+      "start": 21504,
+      "end": 22015,
+      "chars": 264
+    },
+    {
+      "file": "strokes-5600-57ff.json",
+      "start": 22016,
+      "end": 22527,
+      "chars": 188
+    },
+    {
+      "file": "strokes-5800-59ff.json",
+      "start": 22528,
+      "end": 23039,
+      "chars": 163
+    },
+    {
+      "file": "strokes-5a00-5bff.json",
+      "start": 23040,
+      "end": 23551,
+      "chars": 167
+    },
+    {
+      "file": "strokes-5c00-5dff.json",
+      "start": 23552,
+      "end": 24063,
+      "chars": 159
+    },
+    {
+      "file": "strokes-5e00-5fff.json",
+      "start": 24064,
+      "end": 24575,
+      "chars": 204
+    },
+    {
+      "file": "strokes-6000-61ff.json",
+      "start": 24576,
+      "end": 25087,
+      "chars": 173
+    },
+    {
+      "file": "strokes-6200-63ff.json",
+      "start": 25088,
+      "end": 25599,
+      "chars": 245
+    },
+    {
+      "file": "strokes-6400-65ff.json",
+      "start": 25600,
+      "end": 26111,
+      "chars": 165
+    },
+    {
+      "file": "strokes-6600-67ff.json",
+      "start": 26112,
+      "end": 26623,
+      "chars": 201
+    },
+    {
+      "file": "strokes-6800-69ff.json",
+      "start": 26624,
+      "end": 27135,
+      "chars": 166
+    },
+    {
+      "file": "strokes-6a00-6bff.json",
+      "start": 27136,
+      "end": 27647,
+      "chars": 107
+    },
+    {
+      "file": "strokes-6c00-6dff.json",
+      "start": 27648,
+      "end": 28159,
+      "chars": 250
+    },
+    {
+      "file": "strokes-6e00-6fff.json",
+      "start": 28160,
+      "end": 28671,
+      "chars": 148
+    },
+    {
+      "file": "strokes-7000-71ff.json",
+      "start": 28672,
+      "end": 29183,
+      "chars": 126
+    },
+    {
+      "file": "strokes-7200-73ff.json",
+      "start": 29184,
+      "end": 29695,
+      "chars": 171
+    },
+    {
+      "file": "strokes-7400-75ff.json",
+      "start": 29696,
+      "end": 30207,
+      "chars": 187
+    },
+    {
+      "file": "strokes-7600-77ff.json",
+      "start": 30208,
+      "end": 30719,
+      "chars": 174
+    },
+    {
+      "file": "strokes-7800-79ff.json",
+      "start": 30720,
+      "end": 31231,
+      "chars": 167
+    },
+    {
+      "file": "strokes-7a00-7bff.json",
+      "start": 31232,
+      "end": 31743,
+      "chars": 166
+    },
+    {
+      "file": "strokes-7c00-7dff.json",
+      "start": 31744,
+      "end": 32255,
+      "chars": 71
+    },
+    {
+      "file": "strokes-7e00-7fff.json",
+      "start": 32256,
+      "end": 32767,
+      "chars": 213
+    },
+    {
+      "file": "strokes-8000-81ff.json",
+      "start": 32768,
+      "end": 33279,
+      "chars": 210
+    },
+    {
+      "file": "strokes-8200-83ff.json",
+      "start": 33280,
+      "end": 33791,
+      "chars": 247
+    },
+    {
+      "file": "strokes-8400-85ff.json",
+      "start": 33792,
+      "end": 34303,
+      "chars": 139
+    },
+    {
+      "file": "strokes-8600-87ff.json",
+      "start": 34304,
+      "end": 34815,
+      "chars": 161
+    },
+    {
+      "file": "strokes-8800-89ff.json",
+      "start": 34816,
+      "end": 35327,
+      "chars": 128
+    },
+    {
+      "file": "strokes-8a00-8bff.json",
+      "start": 35328,
+      "end": 35839,
+      "chars": 103
+    },
+    {
+      "file": "strokes-8c00-8dff.json",
+      "start": 35840,
+      "end": 36351,
+      "chars": 206
+    },
+    {
+      "file": "strokes-8e00-8fff.json",
+      "start": 36352,
+      "end": 36863,
+      "chars": 156
+    },
+    {
+      "file": "strokes-9000-91ff.json",
+      "start": 36864,
+      "end": 37375,
+      "chars": 194
+    },
+    {
+      "file": "strokes-9200-93ff.json",
+      "start": 37376,
+      "end": 37887,
+      "chars": 12
+    },
+    {
+      "file": "strokes-9400-95ff.json",
+      "start": 37888,
+      "end": 38399,
+      "chars": 245
+    },
+    {
+      "file": "strokes-9600-97ff.json",
+      "start": 38400,
+      "end": 38911,
+      "chars": 175
+    },
+    {
+      "file": "strokes-9800-99ff.json",
+      "start": 38912,
+      "end": 39423,
+      "chars": 113
+    },
+    {
+      "file": "strokes-9a00-9bff.json",
+      "start": 39424,
+      "end": 39935,
+      "chars": 98
+    },
+    {
+      "file": "strokes-9c00-9dff.json",
+      "start": 39936,
+      "end": 40447,
+      "chars": 72
+    },
+    {
+      "file": "strokes-9e00-9fff.json",
+      "start": 40448,
+      "end": 40959,
+      "chars": 142
+    }
+  ]
+}

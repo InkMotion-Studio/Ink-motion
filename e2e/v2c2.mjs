@@ -43,10 +43,13 @@ await page.click('.im-grid-3 >> nth=0 >> text=用此模板');
 await page.waitForTimeout(2500);
 
 // 2. 字体下拉应含隶书选项（下拉改为读 FONT_CATALOG）
-const fontSelect = page.locator('.im-options__group >> nth=1 >> select');
-const options = await page.$$eval('.im-options__group >> nth=1 >> select >> option', (os) =>
-  os.map((o) => o.value),
-);
+// 按选项内容定位字体下拉（不依赖分组索引）
+const fontSelect = page
+  .locator('.im-options__group')
+  .filter({ has: page.locator('option[value="li"]') })
+  .locator('select')
+  .first();
+const options = await fontSelect.locator('option').evaluateAll((os) => os.map((o) => o.value));
 check('字体下拉含隶书选项 li', options.includes('li'), options.join(','));
 
 // 3. 选隶书 → 渲染
@@ -73,9 +76,14 @@ check('隶书面板提示可见（待提供或字库计数）', /待提供|字�
 // 5. 描边动画开关：仅受限字库可用，默认关闭
 //     动画分组必须位于末尾（分组数从 5 → 6），不影响字体(nth=1)/画布(nth=4)
 const groupCount = await page.$$eval('.im-options__group', (gs) => gs.length);
-check('参数面板新增动画分组（共 6 组）', groupCount === 6, `实际 ${groupCount} 组`);
+check('参数面板含动画分组（C6 后共 7 组）', groupCount === 7, `实际 ${groupCount} 组`);
 
-const outlineChk = page.locator('.im-options__group >> nth=5 >> input[type=checkbox]');
+// 按分组标题定位「动画」组（不依赖索引）
+const outlineChk = page
+  .locator('.im-options__group')
+  .filter({ hasText: /动画/ })
+  .locator('input[type=checkbox]')
+  .first();
 check('隶书路径下描边开关可用', (await outlineChk.isEnabled()) === true);
 check('描边开关默认关闭', (await outlineChk.isChecked()) === false);
 
@@ -95,7 +103,11 @@ check('关闭描边后整字显现（无回归）', offInk > 500, `墨迹像素 
 // 6. 切到楷体：描边开关应禁用（仅受限字库路径支持）
 await fontSelect.selectOption('kai');
 await page.waitForTimeout(1500);
-const outlineChk2 = page.locator('.im-options__group >> nth=5 >> input[type=checkbox]');
+const outlineChk2 = page
+  .locator('.im-options__group')
+  .filter({ hasText: /动画/ })
+  .locator('input[type=checkbox]')
+  .first();
 check('楷体路径下描边开关禁用', (await outlineChk2.isEnabled()) === false);
 
 // 7. 零上传断言

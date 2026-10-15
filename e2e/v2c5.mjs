@@ -371,12 +371,10 @@ export async function run() {
   let inkColorChanged = false;
   if (colorInputs.length >= 2) {
     const inkBefore = await hashCanvas(page);
-    // 第二个 color input 是墨色（第一个是载体底色）
-    await colorInputs[1].evaluate((el) => {
-      el.value = '#9e2b25';
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-      el.dispatchEvent(new Event('change', { bubbles: true }));
-    });
+    // 第二个 color input 是墨色（第一个是载体底色）。
+    // 注意：受控 input 不能用 el.value= 直写——React 的 value tracker 会判定
+    // 值未变化从而不触发 onChange。必须用 Playwright 原生 fill（走真实输入路径）。
+    await page.locator('input[type=color]').nth(1).fill('#9e2b25');
     await page.waitForTimeout(1800);
     const inkAfter = await hashCanvas(page);
     inkColorChanged = inkBefore !== inkAfter;
@@ -384,8 +382,9 @@ export async function run() {
   check('声称：可调墨色 → 实测：改色后画布渲染变化', inkColorChanged);
 
   // --- 核心功能 5：书写速度真实生效（影响总时长 → 影响同一时刻的进度） ---
-  // 注意：Slider 是受控 range input，直接写 .value 会被 React 复原；
-  // 必须用键盘方向键驱动，走真实的 onChange 路径。
+  // 注意：Slider 是受控 range input，直接写 .value 会被 React 的 value tracker 吞掉。
+  // 用 Playwright 原生 fill 走真实输入路径；随后在**同一采样窗口**读取进度：
+  // 慢速总时长更长 → 同一时刻进度应显著更小。
   const writeGroup = page.locator('.im-collapsible').filter({ hasText: /书写|Writing/ });
   const speedSlider = writeGroup.locator('input[type=range]').nth(1);
   let speedOk = false;
@@ -398,22 +397,20 @@ export async function run() {
     });
   };
   if (await speedSlider.count()) {
-    // 拉到最小速度
-    await speedSlider.focus();
-    for (let i = 0; i < 40; i++) await page.keyboard.press('ArrowLeft');
-    await page.waitForTimeout(200);
+    // 慢速：设置后等同一采样窗口（1200ms）读进度
+    await speedSlider.fill('0.5');
+    await page.waitForTimeout(1200);
     const slowSpeed = await speedSlider.evaluate((el) => el.value);
-    await page.waitForTimeout(1400);
     const slowProg = await readProgress();
 
-    // 拉到最大速度
-    for (let i = 0; i < 60; i++) await page.keyboard.press('ArrowRight');
-    await page.waitForTimeout(200);
+    // 快速：同一采样窗口
+    await speedSlider.fill('3');
+    await page.waitForTimeout(1200);
     const fastSpeed = await speedSlider.evaluate((el) => el.value);
-    await page.waitForTimeout(1400);
     const fastProg = await readProgress();
 
-    speedOk = slowSpeed !== fastSpeed && slowProg >= 0 && fastProg >= 0 && fastProg > slowProg;
+    speedOk =
+      slowSpeed !== fastSpeed && slowProg >= 0 && fastProg > slowProg && slowProg < 100;
     speedDetail = `${slowSpeed}×→${slowProg}% vs ${fastSpeed}×→${fastProg}%`;
   }
   check(`声称：书写速度可调 → 实测：同刻进度随速度前移（${speedDetail || '控件缺失'}）`, speedOk, speedDetail);

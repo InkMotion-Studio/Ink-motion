@@ -2,6 +2,7 @@ import { Button, Collapsible, Select, Slider } from '@/components';
 import { SealCharsetPanel } from '@/components/SealCharsetPanel';
 import { LiCharsetPanel } from '@/components/LiCharsetPanel';
 import { FONT_CATALOG } from '@/lib/fonts';
+import { CARRIER_ORDER, getCarrierPlugin } from '@/engine/carrier';
 import { useSettingsStore } from '@/store/settings';
 import { useT } from '@/lib/useI18n';
 import type { CarrierType, FontFamily, ProjectOptions } from '@/db/types';
@@ -16,6 +17,25 @@ export interface OptionsPanelProps {
 
 const PAPER_BG = '#f4ecd8';
 const BAMBOO_BG = '#c9b083';
+
+/** V2-C7 C6：各载体的推荐底色（切换载体时同步）。 */
+export const CARRIER_DEFAULT_BG: Record<CarrierType, string> = {
+  paper: '#f4ecd8',
+  scroll: '#f6efdc',
+  handscroll: '#f3ead4',
+  silk: '#efe6cf',
+  letter: '#f7f1de',
+  gold: '#f2e7c9',
+  bamboo: '#c9b083',
+  wood: '#c8a670',
+  rubbing: '#3a3632',
+  fan: '#f4ecd8',
+};
+
+/** 载体默认底色（未列出时回退宣纸色）。 */
+export function carrierBg(type: CarrierType): string {
+  return CARRIER_DEFAULT_BG[type] ?? PAPER_BG;
+}
 
 /** 参数分组键（V2-C5 N5.2：手风琴折叠后仍可被外部记忆） */
 export const OPTION_GROUPS = ['carrier', 'font', 'write', 'scroll', 'canvas', 'animation'] as const;
@@ -56,7 +76,9 @@ export function OptionsPanel({
   const fontValue = opt.customFontId ? `custom:${opt.customFontId}` : opt.fontFamily;
 
   // V2-C5 N5.2：标题摘要——收起时也能读到当前取值
-  const carrierLabel = opt.carrier === 'bamboo' ? t('options.carrier.bamboo') : t('options.carrier.paper');
+  // V2-C7 C6：载体名从注册表读（10 种），不再硬编码两分支
+  const carrierLabel = t(`options.carrier.${opt.carrier}`);
+  const carrierPlugin = getCarrierPlugin(opt.carrier);
   const currentFontLabel = opt.customFontId
     ? (uploadedFonts.find((f) => f.id === opt.customFontId)?.name ?? t('font.groupMine'))
     : t(FONT_CATALOG.find((f) => f.family === opt.fontFamily)?.labelKey ?? 'options.font.kai');
@@ -81,14 +103,14 @@ export function OptionsPanel({
         <Select
           label={t('options.carrierStyle')}
           value={opt.carrier}
-          options={[
-            { value: 'paper', label: t('options.carrier.paper') },
-            { value: 'bamboo', label: t('options.carrier.bamboo') },
-          ]}
+          options={CARRIER_ORDER.map((c) => ({
+            value: c,
+            label: t(`options.carrier.${c}`),
+          }))}
           onChange={(v) => {
             const carrier = v as CarrierType;
-            // 切换载体时同步推荐背景色
-            onChange({ carrier, backgroundColor: carrier === 'bamboo' ? BAMBOO_BG : PAPER_BG });
+            // 切换载体时同步推荐背景色（V2-C7 C6：按载体各自的推荐底色）
+            onChange({ carrier, backgroundColor: carrierBg(carrier) });
           }}
         />
         <label className="im-options__color">
@@ -102,13 +124,68 @@ export function OptionsPanel({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() =>
-              onChange({ backgroundColor: opt.carrier === 'bamboo' ? BAMBOO_BG : PAPER_BG })
-            }
+            onClick={() => onChange({ backgroundColor: carrierBg(opt.carrier) })}
           >
             {t('options.reset')}
           </Button>
         </label>
+        {/* V2-C7 C6：载体观感参数（色温 / 做旧 / 装裱边 / 钤印位） */}
+        <div className="im-options__group">
+          <label className="im-options__slider">
+            <span>{t('options.carrierWarmth')}</span>
+            <Slider
+              min={-1}
+              max={1}
+              step={0.05}
+              value={opt.warmth ?? 0}
+              onChange={(v) => onChange({ warmth: v })}
+              aria-label={t('options.carrierWarmth')}
+            />
+            <span className="im-options__value">{(opt.warmth ?? 0).toFixed(2)}</span>
+          </label>
+          <label className="im-options__slider">
+            <span>{t('options.carrierAging')}</span>
+            <Slider
+              min={0}
+              max={1}
+              step={0.05}
+              value={opt.aging ?? 0.35}
+              onChange={(v) => onChange({ aging: v })}
+              aria-label={t('options.carrierAging')}
+            />
+            <span className="im-options__value">{(opt.aging ?? 0.35).toFixed(2)}</span>
+          </label>
+          {carrierPlugin.supportsMount && (
+            <label className="im-options__slider">
+              <span>{t('options.carrierMount')}</span>
+              <Slider
+                min={0}
+                max={0.15}
+                step={0.005}
+                value={opt.mountRatio ?? 0.075}
+                onChange={(v) => onChange({ mountRatio: v })}
+                aria-label={t('options.carrierMount')}
+              />
+              <span className="im-options__value">
+                {Math.round((opt.mountRatio ?? 0.075) * 1000) / 10}%
+              </span>
+            </label>
+          )}
+          <Select
+            label={t('options.carrierSeal')}
+            value={opt.sealPos ?? 'none'}
+            options={[
+              { value: 'none', label: t('options.seal.none') },
+              { value: 'tr', label: t('options.seal.tr') },
+              { value: 'br', label: t('options.seal.br') },
+              { value: 'bl', label: t('options.seal.bl') },
+              { value: 'tl', label: t('options.seal.tl') },
+            ]}
+            onChange={(v) =>
+              onChange({ sealPos: v as 'none' | 'tr' | 'br' | 'bl' | 'tl' })
+            }
+          />
+        </div>
       </Collapsible>
 
       <Collapsible

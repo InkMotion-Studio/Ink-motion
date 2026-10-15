@@ -315,6 +315,7 @@
   box-shadow: var(--im-shadow-md);
   background: var(--im-color-paper);
   line-height: 0;
+  position: relative;
 }
 .im-preview__meta {
   display: flex;
@@ -329,6 +330,18 @@
   display: block;
   width: 100%;
   height: 100%;
+}
+/* V2-C7 C7 BUG-006：长文预加载进度覆盖层 */
+.im-preview__prep {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 6px 10px;
+  font-size: var(--im-fs-xs);
+  font-family: var(--im-font-mono);
+  line-height: 1.4;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  text-align: center;
 }
 .im-preview__controls {
   display: flex;

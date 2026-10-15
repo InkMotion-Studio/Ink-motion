@@ -33,7 +33,10 @@ const chineseUiChars = () =>
   page.evaluate(() => {
     // 合理保留：语言选择器自称（简体中文）、品牌墨迹符号（墨）；
     // 模板封面/标题/正文属于「古典中文内容」（业务内容，不翻译，设计原则见 i18n.ts 头注）。
+    // V2-C7 C7：笔顺编码说明里夹带的示例汉字（如 e.g. "永" = kresl）属**示例内容**，
+    // 不是未翻译 UI 文案——按字符白名单放行。
     const ALLOW = new Set(['简体中文', '墨']);
+    const ALLOW_CHAR = new Set(['永']);
     const skip = (el) =>
       el &&
       (el.tagName === 'TEXTAREA' ||
@@ -46,7 +49,9 @@ const chineseUiChars = () =>
         if (skip(n.parentElement)) return;
         const v = (n.nodeValue || '').trim();
         if (ALLOW.has(v)) return;
-        text += n.nodeValue || '';
+        text += (n.nodeValue || '').replace(/[\u4e00-\u9fa5]/g, (c) =>
+          ALLOW_CHAR.has(c) ? '' : c,
+        );
       } else if (n.nodeType === 1) {
         for (const c of n.childNodes) walk(c);
       }

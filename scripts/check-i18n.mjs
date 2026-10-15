@@ -48,10 +48,28 @@ for (const [k, zv] of zh) {
   }
 }
 
+// 3b. V2-C7 C7 BUG-004：licenses.ts 的 usageKey 必须能在字典中解析，且不得残留裸 usage: 中文字段。
+{
+  const licSrc = readFileSync(join(ROOT, 'src/lib/licenses.ts'), 'utf8');
+  const usageKeyRe = /usageKey:\s*'([^']+)'/g;
+  let m;
+  let n = 0;
+  while ((m = usageKeyRe.exec(licSrc)) !== null) {
+    n++;
+    if (!zh.has(m[1])) errors.push(`licenses.ts usageKey 未在 zh 字典中：${m[1]}`);
+    if (!en.has(m[1])) errors.push(`licenses.ts usageKey 未在 en 字典中：${m[1]}`);
+  }
+  if (n === 0) errors.push('licenses.ts 未发现任何 usageKey（BUG-004 回归）');
+  // 残留 `usage: '中文'` 形态（应已全部改为 usageKey）
+  const rawUsage = licSrc.match(/^\s*usage:\s*'([^']*[\u4e00-\u9fa5][^']*)'/m);
+  if (rawUsage) errors.push(`licenses.ts 仍存在硬编码 usage 中文：'${rawUsage[1]}'`);
+}
+
 // 4. 硬编码扫描（JSX 文本 / placeholder / aria-label / title 中的中文）
 // 白名单：注释行、t() 内、含「」的模板拼接（越界提示走 t() + 变量，属正常）
-const SCAN_DIRS = ['src/pages', 'src/components'];
-const SKIP_FILE = /(__tests__|\.test\.|\.css$)/;
+// V2-C7 C7 BUG-004：扫描范围纳入 src/lib（此前漏掉 licenses.ts 导致硬编码逃逸）。
+const SCAN_DIRS = ['src/pages', 'src/components', 'src/lib'];
+const SKIP_FILE = /(__tests__|\.test\.|\.css$|i18n\.(zh|en)\.ts$|data\/)/;
 const CN = /[\u4e00-\u9fa5]/;
 
 function walk(dir) {

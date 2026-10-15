@@ -7,7 +7,7 @@
 - **墨演 InkMotion**：纯前端浏览器应用，生成古典中文风格视频（竖排右起、逐笔书写动画、宣纸/竹简等载体渲染、自动滚动、MP4/WebM 导出）。
 - **纯前端铁律**：无服务端、无数据库、无 HTTP API、无账号系统。用户文本/项目/字体仅本地（IndexedDB + Cache API）。
 - **渲染分期**：Canvas2D 为 MVP/V1.0；Three.js/WebGL 为 V2.0。
-- **笔画三路径**：楷体=hanzi-writer 精确笔顺；宋体=整字显现；古文字=骨架化模拟。
+- **笔画三路径**：楷体=本地权威笔顺逐笔（V2-C7 C3 起由字体轮廓生成运笔轨迹，已脱离 hanzi-writer CDN）；宋体=整字显现；古文字=受限字库整字显现。
 
 ## 二、完整文档体系（13 份）
 
@@ -243,3 +243,253 @@
 **验证（全绿）**：单测 **170/170 通过（18 文件）**——V2-C2 新增 `lishu.test.ts` 10 + `stroke-li.test.ts` 5 + `outline.test.ts` 8（含真实合成 TTF fixture）+ `stroke-outline.test.ts` 6 + `outline-perf.test.ts` 5；E2E `e2e/v2c2.mjs` 13 项（接入 all.mjs）；lint 0 error；`tsc --noEmit` 通过；构建成功（首屏 gzip **126.70KB**，自研解析仅 +~2.75KB，守 200KB 门禁）。
 
 **交付 zip**：`InkMotion-V2-C2-隶书路径与描边动画-20261014.zip`
+
+### 8.3 V2-C6 全功能逐项自测与 Bug 清单（2026-10-14 — ✅ 已完成，待用户验收）
+
+**方法**：4 批次共 96 项真实浏览器自测用例（audit1–audit4 + probe1–probe14 逐项核实），检出 **6 项真实缺陷**：
+
+| 编号 | 严重度 | 缺陷 | 根因 |
+|---|---|---|---|
+| BUG-001 | P1 | 预览暂停失效（按钮变播放但进度继续） | PreviewCanvas 两套 rAF 并存，缓动重绘 effect 依赖不含 playing |
+| BUG-002 | P1 | 编辑无自动保存，离开即丢失 | setText/setTitle 只写内存不落库，无 debounce/路由拦截 |
+| BUG-003 | P1 | 默认路径即 404 泛洪 | scene.ts 预加载对每个字符请求 hanzi-writer CDN，无 CJK 过滤 |
+| BUG-004 | P2 | 关于页「开源组件」说明硬编码中文 | licenses.ts 16 处 usage 中文字面量，check-i18n 未扫 src/lib |
+| BUG-005 | P2 | 纯生僻字静默无输出 | 扩展 B 区字符 ink=0 且无提示 |
+| BUG-006 | P3 | 5000 字渲染约 4s 无进度反馈 | 分块让出后单批仍停顿，无 loading 态 |
+
+> 6 项初判失败经逐项复核确认为脚本误报已排除（含首页死 i18n 键、Tab 首焦点、导出对话框等）。
+> 详见 `docs/InkMotion-V2-C6-自测Bug清单.md`。
+
+### 8.4 V2-C7 书写笔顺内置与逐笔动画（2026-10-14 起，逐检查点）
+
+> 用户批注（原话）：「不要在单一老外项目上纠结；汉字笔顺是公开确定性规范，直接内置新华字典/通用规范汉字表级数据源；**A+B+C 三层并用、以用户定制兜底才是正道**；**使用我国最权威版本**。」
+
+**总体计划**：`docs/InkMotion-V2-C7-书写笔顺内置计划.md`（C1–C7）
+**核心路线**：笔顺（顺序）内置权威规范表（A+B） + 用户定制（C）兜底；运笔轨迹由字体轮廓（outline.ts）实时生成。彻底脱离 hanzi-writer CDN。
+
+#### 8.4.1 V2-C7 C1 笔顺数据源内置（A+B 层 · 权威版）— ✅ 已完成，待用户验收
+
+**核心产出**：
+- `scripts/build-strokeorder.mjs`：构建期从 **cnchar**（国产权威汉字库，依据《现代汉语通用字笔顺规范》GF 3002-1999 及《通用规范汉字表》）提取笔顺为静态 JSON；支持 `--check`。
+- `public/strokeorder/`：**6939 字笔顺数据**，按 512 码位分 41 片，共 204KB，按需加载、不进首屏主包。
+- `src/engine/strokeOrder.ts`：运行期零依赖查表接口（getStrokeOrder / preloadStrokeOrder / decodeStrokeOrder）。
+
+**验证（全绿）**：
+```
+[build-strokeorder] 导出 6939 字笔顺，缺失 14053，分 41 片
+[check] 抽样 6939 字 | 非法编码 0 | 期望对比不符 0 | 覆盖 6939 字
+```
+抽样笔顺正确：水=gesl、永=kresl、好=msjegj、中=fcjf、国=fcjjfjkj、爱=skksdejsel；运行期查表逻辑独立验证通过（汉字返回序列、字母/标点返回 null）。
+> 注：缺失 14053 为 cnchar 未收录的极生僻/异体/古字部件，属 A+B+C 体系设计的 C 层/轮廓兜底范围，非缺陷。
+
+**交付 zip**：`InkMotion-V2-C7-C1-笔顺数据源内置-20261014.zip`
+**交付说明**：`docs/InkMotion-V2-C7-C1-笔顺数据内置交付说明.md`
+
+> 待用户「通过」后进入 **C2（运行时三层查表 + 脱离 CDN，根除 BUG-003）**。
+
+#### 8.4.2 V2-C7 C2 运行时三层查表 + 脱离 CDN（根除 BUG-003）— ✅ 已完成，待用户验收
+
+**核心产出**（彻底脱离 hanzi-writer CDN）：
+- `src/engine/stroke.ts`：删除 `HW_CDN` 与 `fetch(HW_CDN+char)`；`loadStrokeData` 改为从 C1 的本地权威表 `getStrokeOrder` 取笔顺，返回 `StrokeOrderResult{order,strokeCount,source}`；新增 `isCjkWithOrder` 守卫。
+- `src/engine/scene.ts`：预加载循环加 CJK 守卫——仅对 CJK 且本地有笔顺的字查表；**标点/字母/数字/生僻字不再发起任何网络请求**（BUG-003 根因根除）；计时线改用真实笔数 `order.length`。
+- `src/lib/fonts.ts`：`path: 'hanzi-writer'` → `'kai'`，删除 `HANZI_WRITER_CDN` 常量。
+- `src/db/types.ts`：`FontFormat` 移除 `'hanzi-writer-data'`。
+- `src/lib/licenses.ts`：移除 Hanzi Writer 运行期归因，新增 cnchar（构建期笔顺导出，MIT）归因。
+
+**验证（全绿）**：
+```
+tsc --noEmit        ✅ 0 error
+vitest run          ✅ 210 passed / 210（全量）
+eslint（增量）       ✅ 0 warning / 0 error
+vite build           ✅ 主包 gzip 131.81KB < 200KB 门禁
+check:i18n           ✅ zh/en 281 键一致
+真实浏览器(Playwright) ✅ 输入「永和九年，岁在癸丑。ABC 123 𰻞𰻞 test 中华人民共和国！」
+                       → hanziWriterCdnRequests=[]（零 CDN 请求）
+                       → failedOrErrors=[]（无 404 / 无控制台错误）
+                       → 视频预览正常渲染
+```
+> **BUG-003 根除确认**：原每字向 `cdn.jsdelivr.net/npm/hanzi-writer-data` 发请求、标点/字母/生僻字批量 404 的根因已彻底消除；C2 阶段 kai 走整字显现降级（按真实笔数节奏分段），无静默无输出。
+
+**技术债（移交 C3/C5）**：
+1. C2 阶段 kai 为整字显现降级，逐笔运笔轨迹由 **C3** 基于 outline.ts 按笔顺切分轮廓生成（drawKaiGlyph 接口已保留）。
+2. `package.json` 仍列 `hanzi-writer` 依赖（源码已零 import），**C5** 整合时统一清理。
+
+**交付 zip**：`InkMotion-V2-C7-C2-完整工程覆盖包-20261014.zip`（完整可直接覆盖的工程快照）
+**交付说明**：`docs/InkMotion-V2-C7-C2-脱离CDN接入本地权威笔顺交付说明.md`
+
+#### 8.4.3 V2-C7 C3 轮廓兜底引擎（任意字体逐笔动画）— ✅ 已完成，待用户验收
+
+**核心产出**（基于权威笔顺 + 本地楷体轮廓实现真实逐笔，彻底脱离 hanzi-writer 中线）：
+- `scripts/build-kai-outline.py`（新增）：从完整楷体源 `fonts-src/LXGWWenKaiLite-Regular.ttf`（OFL 1.1）提取
+  CJK 基本区 glyf 轮廓，输出与运行期 `OutlineGlyph` 同构的精简 JSON，按 512 码位分片存 `public/kaioutline/`（41 片 + manifest，**18430 字**）。
+  紧凑数组格式 `points=[x,y,on,...]`，体积由初版 110MB 压至 **42MB**（按需分片，运行期流量极小）。
+- `src/engine/outline.ts`：新增 `getKaiOutline(ch)`——仿 strokeorder 分片加载，直接构造 `OutlineGlyph`（零网络、按码位缓存）。
+- `src/engine/stroke.ts`：新增 `buildStrokePaths(outline, strokeCount)`——整字轮廓展平为直线段，按**权威笔顺笔画数 N** 均匀切分为 N 段；
+  重写 `drawKaiGlyph(ctx, glyph, paths, progress, color)`——第 i 笔在 `[i/N,(i+1)/N]` 内按局部进度沿轮廓描出（圆头描边 + 弧长截断）。
+- `src/engine/scene.ts`：`preloadOutlines` 对 kai 路径**无条件**预加载轮廓；`drawFrame` kai 分支 → `buildStrokePaths` + `drawKaiGlyph` 真实逐笔，缺失则整字降级。
+
+**验证（全绿）**：
+```
+tsc --noEmit        ✅ 0 error
+vitest run          ✅ 213 passed / 213（新增 C3 单测 5 项）
+eslint（增量）       ✅ 0 warning / 0 error
+vite build           ✅ 主包 gzip 132.69KB < 200KB 门禁
+check:i18n           ✅ zh/en 281 键一致
+真实浏览器(Playwright) ✅ 编辑器输入「永和九年岁在癸丑中华人民共和国」
+                       → kaiOutlineChunksLoaded=9（楷体轮廓分片实际加载，逐笔生效）
+                       → externalOrCdnRequests=[]（零 CDN / 零外网请求）
+                       → failedOrErrors=[]（无 404 / 无控制台错误）
+```
+
+**技术取舍（诚实标注）**：采用「轮廓等弧长分段 + 笔顺驱动揭示」而非像素级标准笔形还原——
+真正支持任意 TTF/OTF 字体逐笔动画（兑现用户「任一字体都能逐笔动画」诉求）；
+段边界按弧长均匀，未必恰好落在真实笔形交界处（视觉连贯、节奏正确，非标准笔形分割）。
+
+**交付说明**：`docs/InkMotion-V2-C7-C3-轮廓兜底引擎交付说明.md`
+
+#### 8.4.4 V2-C7 C4 用户定制兜底层（C 层）— ✅ 已完成，待用户验收
+
+**核心产出**（落地「A+B+C 三层，以用户定制兜底」）：
+- `src/db/types.ts`：新增 `CustomStrokeRecord { id; char; order?; outline?: CustomOutline; note?; createdAt; updatedAt }`
+  与 `CustomOutline { contours; unitsPerEm; xMin; yMin; xMax; yMax }`。
+- `src/db/database.ts`：Dexie `version(2).stores({ customstrokes: 'id, char, updatedAt' })` 增量升级（不破坏既有表）；
+  新增 `putCustomStroke`（id=char，一字一条覆盖，非法抛错）、`getCustomStroke`、`listCustomStrokes`、
+  `deleteCustomStroke`、`exportCustomStrokes`、`importCustomStrokes`（逐条校验，非法跳过返回 `{imported, skipped}`）。
+- `src/engine/customStroke.ts`（新增）：C 层引擎读取封装——`setCustomStrokeLoader` / `ensureLoaded` /
+  `invalidateCustomStrokes` / `primeCustomStrokes` / `getCustomStrokeOrder` / `getCustomOutline` / `__resetCustomStrokes`；
+  无 loader / 无 IndexedDB 时安全降级（返回 null，不抛错）。
+- `src/engine/stroke.ts`：`loadStrokeData` 优先级改为 **C（用户定制）> A+B（权威内置表）**，命中定制时 `source:'user'`；
+  新增 `invalidateStrokeDataCache()`。
+- `src/engine/outline.ts`：`getKaiOutline(ch)` 前先探 `getCustomOutline(ch)`（C 层自定义轮廓优先于内置楷体轮廓）；
+  新增 `invalidateKaiOutlineCache()`。
+- `src/components/CustomStrokeManager.tsx`（新增）：录入字符 + 笔顺编码 + 备注 → 保存；26 字母编码实时解码笔画名；
+  列表 / 删除；导出 / 导入 JSON；保存后联动 `invalidateCustomStrokes` + `invalidateStrokeDataCache` + `invalidateKaiOutlineCache`。
+- `src/pages/Settings.tsx`：字体卡片后新增「用户定制笔顺（C 层）」卡片；`src/main.tsx` bootstrap 注入 loader。
+- `src/lib/i18n.zh.ts` / `i18n.en.ts`：新增 `custom.*` 19 键（zh/en 共 **300 键**对齐）。
+
+**三层查表最终形态**：
+```
+C  用户定制（IndexedDB，最高优先级）   ← C4 本层
+B  新华字典级增强（并入权威内置表）      ← C1
+A  《通用规范汉字表》(GF 3002-1999)     ← C1
+── 以上均无 ──
+C3 字体轮廓兜底（按笔顺切分轮廓逐笔）    ← C3
+整字显现降级（标点/字母/无轮廓）        ← 兜底
+```
+
+**验证（全绿）**：
+```
+tsc --noEmit        ✅ 0 error
+vitest run          ✅ 229 passed / 229（新增数据层 9 + C 层优先级 3 + 组件 4）
+eslint（增量）       ✅ 0 warning / 0 error
+vite build           ✅ 主包 gzip 134.79KB < 200KB 门禁
+check:i18n           ✅ zh/en 300 键一致
+真实浏览器(Playwright) ✅ 设置页「用户定制笔顺（C 层）」卡片渲染
+                       → 录入「永=sl」成功入列表（listItems=1）
+                       → failedOrErrors=[]（无 404 / 无控制台错误）
+```
+
+**交付 zip**：`InkMotion-V2-C7-C4-完整工程覆盖包-20261014.zip`（完整可直接覆盖的工程快照）
+**交付说明**：`docs/InkMotion-V2-C7-C4-用户定制兜底层交付说明.md`
+
+#### 8.4.5 V2-C7 C5 书写引擎统一与观感 — ✅ 已完成，待用户验收
+
+**核心产出**（五路径统一书写基元 + 观感参数化 + 清理 hanzi-writer）：
+- `src/engine/draw.ts`（新增）：全工程唯一的「设计坐标 → 画布方块」变换 `applyGlyphTransform`
+  与观感参数体系 `InkStyle { taper 笔锋, inkFlow 墨迹浓淡, speedCurve 速度曲线, widthRatio, round }`；
+  书写感时间重映射 `easeSinceWrite`（起笔迟滞→行笔加速→收笔略顿，端点严格 0/1）；
+  线宽/透明度曲线 `strokeWidthAt` / `alphaAt`；三套缺省观感（逐笔/整字/轮廓描边）。
+- `src/engine/stroke.ts`：`drawKaiGlyph` 接入笔锋/浓淡/速度曲线（去「铁丝描红」）；
+  `StrokePaths` 新增 `box`（消除 drawKaiGlyph 与 drawGlyphOutline 包围盒口径不一致，删 `currentOutlineBox`）；
+  合并重复的 `drawSongGlyph`/`drawRestrictedGlyph` → `drawWholeGlyph`，整字淡入升级为「墨渗渐显」；
+  旧函数保留薄包装（签名不变向后兼容）。
+- `src/engine/scene.ts`：**计时线统一**——song/brush/自定义字体不再恒为 220ms，
+  全路径按 `max(220, 笔画数×110)/speed`（无笔顺数据用 8 画估算），同文本切字体时长不跳变；
+  `path` 提升为构造期字段，修复 brush/自定义字体在 `preloadOutlines` 的误判。
+- **残留清理**：`package.json`/`package-lock.json` 移除 `hanzi-writer`（源码 C2 起已零 import）；
+  `types.ts` 删除 `HanziStrokeData`（零引用遗留结构）；`THIRD-PARTY-NOTICES.md` 将
+  Hanzi Writer 移出运行期组件表、新增「构建期数据来源」表（cnchar / fonttools）。
+
+**验证（全绿）**：
+```
+tsc --noEmit        ✅ 0 error
+vitest run          ✅ 253 passed / 253（新增 C5 观感/变换/竖排/计时 24 项）
+eslint（增量）       ✅ 0 warning / 0 error
+vite build           ✅ 主包 gzip 135.30KB < 200KB 门禁
+check:i18n           ✅ zh/en 300 键一致
+真实浏览器(Playwright) ✅ 五字体（kai/song/brush/seal/li）切换截图（docs/c5-shots/）
+                       → kai 逐笔多帧差异非零（diffs=4,2,2，逐笔推进而非整字闪现）
+                       → 零外网请求 / 零 404 / 零页面异常 / 零控制台错误
+```
+
+**诚实取舍**：笔锋为参数化近似（线宽两端收细），非毛笔物理仿真；整字显现路径
+（song/brush/自定义字体）仍无逐笔（无本地轮廓数据），本轮统一的是观感与计时口径；
+墨迹浓淡为透明度调制，不做渗墨扩散（属 C6 载体材质范畴）。
+
+**交付 zip**：`InkMotion-V2-C7-C5-完整工程覆盖包-20261014.zip`（完整可直接覆盖的工程快照）
+**交付说明**：`docs/InkMotion-V2-C7-C5-书写引擎统一与观感交付说明.md`
+
+#### 8.4.6 V2-C7 C6 载体体系重构（实体中国传统形制）— ✅ 已完成，待用户验收
+
+**核心产出**（10 种真实形制 + 多层程序化材质 + 观感参数）：
+- `src/engine/carrier/` 目录化（删除单文件 `carrier.ts`）：
+  `index.ts`（注册表 10 插件 / CARRIER_ORDER / renderCarrier）、`types.ts`（CarrierParams/CarrierPlugin/resolveParams）、
+  `noise.ts`（确定性噪声 fbm/mulberry32/applyWarmth/shade/rgba）、`material.ts`（纤维/帘纹/颗粒/边缘污渍/暗角/投影/钤印基元）、
+  `plugins/{paperFamily,solidFamily,mountFamily}.ts`。
+- **十种载体**：宣纸卷轴 / 立轴 / 手卷 / 绢帛 / 信笺(朱丝栏) / 洒金笺(金箔) / 竹简(竹节编绳) /
+  木牍(年轮裂纹) / 碑拓(石面斑驳) / 团扇(扇骨玉坠)。全部程序化合成，零位图资产、零外网。
+- **观感参数**（`ProjectOptions` 扩展）：色温 warmth / 做旧 aging / 装裱边 mountRatio（按载体显隐）/ 钤印位 sealPos / seed。
+- **UI/i18n**：载体下拉改 `CARRIER_ORDER`（10 项）+ 4 参数控件；zh/en **317 键**对齐。
+- **缺陷修复**：`PreviewCanvas.tsx` 与 `lib/sceneFactory.ts` 漏传 4 载体参数（UI 调节无效、导出与预览不同源）→ 补传 + 回归守卫。
+
+**验证（全绿）**：
+```
+tsc --noEmit        ✅ 0 error
+vitest run          ✅ 280 passed / 280（新增 carrier 专项 26 + 透传回归 1）
+eslint              ✅ 0 warning / 0 error
+vite build           ✅ 主包 gzip 141.23KB < 200KB 门禁
+check:i18n           ✅ zh/en 317 键一致
+真实浏览器(Playwright) ✅ 10 载体逐一切换截图（docs/c6-shots/）
+                       → 下拉含全部 10 载体；各载体画面互不相同（9/9 对不同）
+                       → 色温 diff=63048 / 做旧 diff=189（参数生效）
+                       → 零外网 / 零 404 / 零页面异常 / 零控制台错误
+```
+
+**诚实取舍**：程序化材质为风格化近似（非实物扫描）；预览缩放下笔画极细（与 C5 同样的既有表现，属 C7 观察项）。
+
+**交付 zip**：`InkMotion-V2-C7-C6-完整工程覆盖包-20261014.zip`（完整可直接覆盖的工程快照）
+**交付说明**：`docs/InkMotion-V2-C7-C6-载体体系重构交付说明.md`
+
+#### 8.4.7 V2-C7 C7 整合回归 + 发布检查单（含 V2-C6 遗留缺陷修复）— ✅ 已完成，待用户验收
+
+**核心产出（缺陷清零 + 首次完整 E2E 套件跑通）**：
+- **BUG-001 预览暂停失效**：`PreviewCanvas` 删除与播放循环并存的第二条 rAF「缓动重绘」链（不看 `playing`），
+  唯一动画驱动源收敛到播放循环。实测暂停后 `26% → 26% → 26%`。
+- **BUG-002 编辑无自动保存**：editor store 三个 mutator 内置 **800ms debounce 自动落库** + `flush()`；
+  Editor 在卸载/路由离开/pagehide 三处兜底。实测不点保存 600ms 内 IndexedDB 已含新正文。
+- **BUG-003**（C2 根除，本轮复核）：本地权威笔顺表 + 码位守卫，`src/` 零 CDN 引用，真实混排文本零 404。
+- **BUG-004 关于页硬编码中文**：`licenses.ts` `usage` → `key`/`usageKey` 走 i18n（新增 15 条 `license.*.usage`）；
+  `check-i18n` 扫描纳入 `src/lib` + licenses 专项校验；顺带清除 `fonts.ts` 中从未渲染的中文死字段。
+- **BUG-005 生僻字静默无输出**：新增 `useFontCoverage`（读字体分片码位区间），编辑器给出「当前字体不支持以下字符」提示。
+- **BUG-006 长文无进度反馈**：`Scene.onProgress(loaded,total)` 分块上报 + 预览「正在准备… N%」覆盖层（`aria-live`）。
+- **首次跑通完整 E2E 套件**：修复 **10 处测试自身失效/过时**（受控控件直写绕过 React、索引漂移、
+  Hanzi Writer 残留断言、示例字「永」误判、6→7 分组硬断言、5000 字场景等待过窄）。
+
+**验证（全绿）**：
+```
+tsc --noEmit            ✅ 0 error
+vitest run              ✅ 297 passed / 297（新增 C7 缺陷回归 17 项）
+eslint                  ✅ 0 warning / 0 error
+vite build              ✅ 主包 gzip 142.00KB < 200KB
+check:i18n              ✅ zh/en 335 键一致
+真实浏览器(Playwright)   ✅ e2e/all.mjs：15/15 套件 · 185/185 用例
+                          （发布检查单 41/41、C7 缺陷回归 7/7、无障碍 15/15）
+```
+
+**诚实取舍**：BUG-006 是「准备」进度非渲染进度；BUG-005 覆盖判定为保守下界；
+**5000 字场景主线程阻塞约 3.6s**（数据不丢、状态翻转滞后），彻底优化需排版移出主线程，建议列后续专项。
+
+**交付 zip**：`InkMotion-V2-C7-C7-完整工程覆盖包-20261014.zip`（完整可直接覆盖的工程快照）
+**交付说明**：`docs/InkMotion-V2-C7-C7-整合回归与发布检查单交付说明.md`
+
+> **V2-C7 全部 7 个检查点（C1~C7）完成**——待用户「通过」后本轮 V2-C7 收官，可按发布检查单进入发布流程。

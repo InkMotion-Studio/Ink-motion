@@ -15,6 +15,7 @@ import { TEXT_HARD_LIMIT, updateProject } from '@/db/database';
 import { downloadProjectJSON, parseProjectJSON } from '@/lib/projectIO';
 import { useSealOutOfRange, useSealCoverage } from '@/lib/useSeal';
 import { useLiOutOfRange, useLiCoverage } from '@/lib/useLi';
+import { useFontUnsupported } from '@/lib/useFontCoverage';
 import { useT } from '@/lib/useI18n';
 
 /** V2-C5 N5.1：左右栏折叠态的本地持久化键（避免每次进入都手动收起） */
@@ -84,6 +85,30 @@ export function EditorPage() {
   // V2-C2 N2.2：隶书路径越界检测与覆盖率（与篆书并行，独立提示块）
   const liOutOfRange = useLiOutOfRange(project?.text ?? '', project?.options.fontFamily ?? 'kai');
   const liCoverage = useLiCoverage(project?.text ?? '', project?.options.fontFamily ?? 'kai');
+  // V2-C7 C7 BUG-005：整字路径（楷/宋/毛笔楷）字体缺字检测与提示
+  const fontUnsupported = useFontUnsupported(
+    project?.text ?? '',
+    project?.options.fontFamily ?? 'kai',
+  );
+
+  // V2-C7 C7 BUG-002 修复：离开编辑器（卸载 / 路由切换）或页面隐藏时，
+  // 立即 flush 未落库的编辑，避免「编辑后直接返回」造成数据丢失。
+  useEffect(() => {
+    const flush = () => {
+      void useEditorStore.getState().flush();
+    };
+    const onHide = () => {
+      if (document.visibilityState === 'hidden') flush();
+    };
+    window.addEventListener('pagehide', flush);
+    document.addEventListener('visibilitychange', onHide);
+    return () => {
+      window.removeEventListener('pagehide', flush);
+      document.removeEventListener('visibilitychange', onHide);
+      // 组件卸载 = 离开本编辑页 → 兜底保存
+      flush();
+    };
+  }, []);
 
   // 快捷键：Ctrl/Cmd+S 保存
   useEffect(() => {
@@ -221,6 +246,20 @@ export function EditorPage() {
                 {t('editor.charRemaining')} {remaining} / {TEXT_HARD_LIMIT}
                 {t('editor.charUnit')}
               </p>
+              {project.options.fontFamily !== 'seal' &&
+                project.options.fontFamily !== 'li' &&
+                fontUnsupported.length > 0 && (
+                  <p
+                    className="im-editor__font-hint"
+                    aria-live="polite"
+                    role="status"
+                    style={{ fontSize: 'var(--im-fs-xs)', color: 'var(--im-color-danger)' }}
+                  >
+                    {t('font.unsupportedHint')}
+                    {fontUnsupported.slice(0, 40).join('')}
+                    {fontUnsupported.length > 40 ? '…' : ''}」——{t('font.unsupportedTip')}
+                  </p>
+                )}
               {project.options.fontFamily === 'seal' && (
                 <p
                   className="im-editor__seal-hint"

@@ -27,18 +27,28 @@
 
 | 组件 | 许可 | 用途 |
 |---|---|---|
-| Hanzi Writer（含 hanzi-writer-data） | MIT | 楷体逐笔书写动画与笔顺数据加载 |
 | Dexie.js | Apache-2.0 | IndexedDB 封装（项目/设置/字体本地持久化） |
 | React / React DOM | MIT | UI 框架 |
 | Zustand | MIT | 状态管理 |
 | React Router | MIT | 前端路由（HashRouter） |
 | mp4-muxer | MIT | MP4 封装（WebCodecs 导出路径） |
 
-## 三、构建/测试期工具（不随包分发）
+> **C5 变更**：Hanzi Writer（含 hanzi-writer-data，MIT）已于 C2 起停止运行期使用（笔顺改本地权威内置），
+> 并于 C5 从 `package.json` 依赖与 `package-lock.json` 中**彻底移除**。逐笔轨迹由自研轮廓引擎生成，
+> 全仓无该组件任何运行期代码。构建期笔顺导出使用 **cnchar**（MIT，见下）。
+
+## 三、构建期数据来源（不随包分发的运行期依赖）
+
+| 数据/工具 | 许可 | 用途 |
+|---|---|---|
+| cnchar | MIT | 构建期导出权威笔顺为静态 JSON（`scripts/build-strokeorder.mjs`）；依据《现代汉语通用字笔顺规范》GF 3002-1999 与《通用规范汉字表》 |
+| fonttools（pyftsubset） | MIT | 构建期字体分片与楷体轮廓提取（`scripts/build-fonts.py`、`scripts/build-kai-outline.py`） |
+
+## 四、构建/测试期工具（不随包分发）
 
 Vite、Vitest、TypeScript、ESLint、Prettier、Playwright、axe-core（均为 MIT / Apache-2.0 系许可）。
 
-## 四、用户上传字体（许可责任说明）
+## 五、用户上传字体（许可责任说明）
 
 用户通过「设置 → 字体」上传的字体仅存储于本机浏览器（IndexedDB），不会上传至任何服务器。
 字体文件的再分发与商用许可由用户自行确认；应用不对上传字体的授权状态负责。

@@ -12,14 +12,16 @@ export type LicenseId =
   | 'ISC';
 
 export interface LicenseEntry {
-  /** 组件/字体名称（展示用） */
+  /** 组件/字体名称（专有名词，不翻译） */
   name: string;
+  /** 稳定标识（用于生成 i18n 键 license.<key>.usage） */
+  key: string;
   /** 许可标识 */
   license: LicenseId;
   /** 许可全文链接 */
   url: string;
-  /** 用途说明（一句话） */
-  usage: string;
+  /** 用途说明的 i18n 键（V2-C7 C7 BUG-004：改走字典，消除硬编码中文） */
+  usageKey: string;
   /** 是否必须在 UI 可见署名 */
   attributionRequired: boolean;
   /** 随包分发的许可文件（站点相对路径），用于"许可文本随附"合规 */
@@ -40,129 +42,144 @@ export const APP_LICENSE = {
 export const THIRD_PARTY_LICENSES: LicenseEntry[] = [
   {
     name: '文鼎楷体 UKai（Arphic UKai）',
+    key: 'arphicUkai',
     license: 'ArphicPL',
     url: 'https://www.arphic.com.tw/',
-    usage: '楷体路径 Hanzi Writer 笔顺数据来源（V2-C4 起字形改用霞鹜文楷）',
+    usageKey: 'license.arphicUkai.usage',
     attributionRequired: true,
     category: 'font',
   },
   {
     name: '霞鹜文楷 LXGW WenKai Lite',
+    key: 'lxgwWenKai',
     license: 'OFL-1.1',
     url: 'https://github.com/lxgw/LxgwWenKai-Lite',
-    usage: '楷体路径字形；V2-C4 N4.2 起随包提供分片字库（25694 字形）',
+    usageKey: 'license.lxgwWenKai.usage',
     attributionRequired: true,
     bundled: '/fonts/builtin/fonts.css',
     category: 'font',
   },
   {
     name: '思源宋体 Noto Serif SC / Source Han Serif',
+    key: 'sourceHanSerif',
     license: 'OFL-1.1',
     url: 'https://github.com/adobe-fonts/source-han-serif',
-    usage: '宋体路径字形；V2-C4 N4.2 起随包提供分片字库（30928 字形），不再依赖系统字体',
+    usageKey: 'license.sourceHanSerif.usage',
     attributionRequired: true,
     bundled: '/fonts/builtin/fonts.css',
     category: 'font',
   },
   {
     name: '马善政毛笔楷 Ma Shan Zheng',
+    key: 'maShanZheng',
     license: 'OFL-1.1',
     url: 'https://github.com/googlefonts/mashanzheng',
-    usage: '毛笔楷路径字形；V2-C4 N4.2 新增，随包提供分片字库（5959 字形）',
+    usageKey: 'license.maShanZheng.usage',
     attributionRequired: true,
     bundled: '/fonts/builtin/fonts.css',
     category: 'font',
   },
   {
     name: '霞鹜篆书 LXGW Seal',
+    key: 'lxgwSeal',
     license: 'OFL-1.1',
     url: 'https://scripts.sil.org/OFL',
-    usage: '小篆路径字形（受限字库，Unicode 18.0 小篆码位）；L0 保底字源',
+    usageKey: 'license.lxgwSeal.usage',
     attributionRequired: true,
     bundled: '/fonts/seal/OFL.txt',
     category: 'font',
   },
   {
     name: '敬峰中山王篆（L1）',
+    key: 'jingfengSeal',
     license: 'OFL',
     url: 'https://scripts.sil.org/OFL',
-    usage: '小篆路径主力字源（~2832 字，替代 L0 成为主力）；V2.0 纳入（TBD-V2-01 关闭）',
+    usageKey: 'license.jingfengSeal.usage',
     attributionRequired: true,
     pendingAuthorization: true,
     category: 'font',
   },
   {
     name: '全字库说文解字（L2）',
+    key: 'quanzikuShuowen',
     license: 'OpenGov-TW',
     url: 'https://data.gov.tw/',
-    usage: '小篆路径最大覆盖字源（6721 字，生僻字兜底）；V2.0 纳入（用户决策）',
+    usageKey: 'license.quanzikuShuowen.usage',
     attributionRequired: true,
     pendingAuthorization: true,
     category: 'font',
   },
   {
     name: '阿里妈妈刀隶体（Alimama Dao Li Ti）',
+    key: 'alimamaDaoLi',
     license: 'OFL',
     url: 'https://www.alimama.com/',
-    usage:
-      '隶书路径字形（真隶书，GB2312 覆盖 6763 字）。V2-C4 N4.3：官方仅通过阿里妈妈平台发布，无公开直链 CDN，需手动取件后运行 scripts/build-fonts.py 接入；当前隶书回退系统字体',
+    usageKey: 'license.alimamaDaoLi.usage',
     attributionRequired: true,
     pendingAuthorization: true,
     category: 'font',
   },
   {
-    name: 'Hanzi Writer（含 hanzi-writer-data）',
+    name: 'cnchar（含 cnchar-order）',
+    key: 'cnchar',
     license: 'MIT',
-    url: 'https://github.com/chanind/hanzi-writer',
-    usage: '楷体逐笔书写动画与笔顺数据加载',
+    url: 'https://github.com/cncharjs/cnchar',
+    usageKey: 'license.cnchar.usage',
     attributionRequired: false,
-    category: 'runtime',
+    category: 'build',
   },
+  // C2：原 Hanzi Writer（含 hanzi-writer-data，MIT）已移除——楷体笔顺改为本地权威内置，不再加载其 CDN 数据。
   {
     name: 'Dexie.js',
+    key: 'dexie',
     license: 'Apache-2.0',
     url: 'https://dexie.org/',
-    usage: 'IndexedDB 封装（项目/设置/字体本地持久化）',
+    usageKey: 'license.dexie.usage',
     attributionRequired: false,
     category: 'runtime',
   },
   {
     name: 'React / React DOM',
+    key: 'react',
     license: 'MIT',
     url: 'https://react.dev/',
-    usage: 'UI 框架',
+    usageKey: 'license.react.usage',
     attributionRequired: false,
     category: 'runtime',
   },
   {
     name: 'Zustand',
+    key: 'zustand',
     license: 'MIT',
     url: 'https://github.com/pmndrs/zustand',
-    usage: '轻量状态管理',
+    usageKey: 'license.zustand.usage',
     attributionRequired: false,
     category: 'runtime',
   },
   {
     name: 'React Router',
+    key: 'reactRouter',
     license: 'MIT',
     url: 'https://reactrouter.com/',
-    usage: '前端路由（HashRouter）',
+    usageKey: 'license.reactRouter.usage',
     attributionRequired: false,
     category: 'runtime',
   },
   {
     name: 'mp4-muxer',
+    key: 'mp4Muxer',
     license: 'MIT',
     url: 'https://github.com/Vanilagy/mp4-muxer',
-    usage: 'MP4 封装（WebCodecs 导出路径）',
+    usageKey: 'license.mp4Muxer.usage',
     attributionRequired: false,
     category: 'runtime',
   },
   {
     name: 'Vite / Vitest / TypeScript',
+    key: 'viteToolchain',
     license: 'MIT',
     url: 'https://vitejs.dev/',
-    usage: '构建与测试工具链（不随包分发）',
+    usageKey: 'license.viteToolchain.usage',
     attributionRequired: false,
     category: 'build',
   },
