@@ -8,6 +8,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "copy:kai": "node scripts/copy-kai-strokes.mjs",
+    "predev": "npm run copy:kai",
+    "prebuild": "npm run copy:kai",
     "preview": "vite preview --port 4173",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --ext .ts,.tsx",
@@ -21,6 +24,7 @@
   },
   "dependencies": {
     "dexie": "^4.0.8",
+    "hanzi-writer-data": "^2.0.1",
     "mp4-muxer": "^5.2.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

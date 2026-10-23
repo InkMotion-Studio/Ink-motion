@@ -46,4 +46,7 @@ export {
   ExportAbortError,
 } from './exporter';
 export type { ExportCapabilities, ExportRequest, ExportResult } from './exporter';
-export { drawSealGlyph } from './stroke';
+export { drawSealGlyph, drawStrokeGlyph } from './stroke';
+export type { StrokePaths, FlatSeg } from './stroke';
+export { getKaiStrokeGlyph, invalidateKaiStrokeCache } from './kaiStrokeData';
+export type { StrokeGlyph, StrokeSegment, StrokeFidelity } from './types';

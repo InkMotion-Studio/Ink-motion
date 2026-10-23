@@ -1,14 +1,15 @@
 // 场景编排：整合排版 + 笔画 + 载体，按时间线逐帧绘制（预览与导出共用）。
 import { layoutText } from './layout';
-import { loadStrokeData, isCjkWithOrder, drawSongGlyph, drawSealGlyph, drawLiGlyph, drawGlyphOutline, drawKaiGlyph, buildStrokePaths, isBlockedPath } from './stroke';
+import { loadStrokeData, isCjkWithOrder, drawSongGlyph, drawSealGlyph, drawLiGlyph, drawGlyphOutline, drawKaiGlyph, drawStrokeGlyph, buildStrokePaths, isBlockedPath } from './stroke';
 import { renderCarrier } from './carrier';
 import { parseGlyphOutline, getKaiOutline, type OutlineGlyph } from './outline';
-import type { GlyphPlacement, StrokeOrderResult, LayoutResult } from './types';
+import type { GlyphPlacement, StrokeOrderResult, LayoutResult, StrokeGlyph } from './types';
 import type { CarrierType, FontFamily } from '@/db/types';
 import { loadSealCharset, loadSealRegistry, mergedSealCharset, transformToSeal, type SealLayerSetting, SEAL_FONT_URL } from '@/lib/seal';
 import { loadLiCharset, transformToLi, LI_FONT_URL } from '@/lib/lishu';
 import { getBuiltinFontStack } from '@/lib/fontRegistry';
 import { getSetting } from '@/db/database';
+import { getKaiStrokeGlyph } from './kaiStrokeData';
 
 export interface SceneOptions {
   text: string;
@@ -67,6 +68,8 @@ export class Scene {
   private readonly data = new Map<string, StrokeOrderResult | null>();
   /** V2-C2 N2.3：字形轮廓缓存（seal/li 开启描边预解析；kai 由 C3 加载楷体轮廓）。失败为 null → 降级整字填充 */
   private readonly outlines = new Map<string, OutlineGlyph | null>();
+  /** C8：楷体真笔顺几何缓存（KaiAdaptor，离线同源 hanzi-writer-data）。null = 未收录 → 回落轮廓方案。 */
+  private readonly kaiGlyphs = new Map<string, StrokeGlyph | null>();
 
   constructor(opts: SceneOptions) {
     this.opts = opts;
@@ -205,6 +208,22 @@ export class Scene {
     }
     const ordered = [...this.layout.glyphs].sort((a, b) => a.order - b.order);
     this.buildTimings(ordered);
+    // C8：楷体真笔顺（KaiAdaptor）——离线同源加载 hanzi-writer-data；缺失字回落轮廓方案。
+    if (this.path === 'kai') {
+      const kaiChars = Array.from(new Set(this.layout.glyphs.map((g) => g.char))).filter(
+        (c) => c.trim().length > 0 && !this.kaiGlyphs.has(c),
+      );
+      const CHUNK_KAI = 200;
+      for (let i = 0; i < kaiChars.length; i += CHUNK_KAI) {
+        const batch = kaiChars.slice(i, i + CHUNK_KAI);
+        await Promise.all(
+          batch.map(async (c) => {
+            this.kaiGlyphs.set(c, await getKaiStrokeGlyph(c));
+          }),
+        );
+        if (i + CHUNK_KAI < kaiChars.length) await new Promise((r) => setTimeout(r, 0));
+      }
+    }
     // V2-C2 N2.3：轮廓描边动画——仅受限字库路径且开关开启时预解析字形轮廓
     await this.preloadOutlines();
   }
@@ -351,14 +370,21 @@ export class Scene {
         // 楷体（C3/C5）：本地权威笔顺 + 本地楷体轮廓 → 轮廓·笔顺驱动逐笔动画（笔锋/速度曲线/墨迹浓淡）。
         // 缺失轮廓或笔顺时整字显现降级（零网络，无静默无输出）。
         if (g.path === 'kai') {
-          const data = this.getGlyphData(g.char);
-          const outline = this.getGlyphOutline(g.char);
-          if (data && outline && outline.contours.length > 0) {
-            const paths = buildStrokePaths(outline, data.strokeCount);
-            drawKaiGlyph(ctx, g, paths, p, this.opts.strokeColor);
+          // C8：优先真笔顺（KaiAdaptor，离线同源 hanzi-writer-data，正确笔顺几何）；
+          // 未收录则该字回落 C3 轮廓·笔顺近似，仍无数据再整字显现。
+          const authored = this.kaiGlyphs.get(g.char);
+          if (authored) {
+            drawStrokeGlyph(ctx, g, authored, p, this.opts.strokeColor);
           } else {
-            const stack = this.opts.customFontStack ?? getBuiltinFontStack(this.opts.fontFamily);
-            drawSongGlyph(ctx, g, p, this.opts.strokeColor, stack);
+            const data = this.getGlyphData(g.char);
+            const outline = this.getGlyphOutline(g.char);
+            if (data && outline && outline.contours.length > 0) {
+              const paths = buildStrokePaths(outline, data.strokeCount);
+              drawKaiGlyph(ctx, g, paths, p, this.opts.strokeColor);
+            } else {
+              const stack = this.opts.customFontStack ?? getBuiltinFontStack(this.opts.fontFamily);
+              drawSongGlyph(ctx, g, p, this.opts.strokeColor, stack);
+            }
           }
         } else {
           // 兜底（理论上不会走到）：整字显现

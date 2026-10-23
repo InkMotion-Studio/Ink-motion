@@ -2,7 +2,7 @@
 // 楷体 = 本地权威笔顺逐笔（C2 起数据源切换为 cnchar 内置，零网络；C3 将补「字体轮廓 + 笔顺」逐笔轨迹）；
 // 宋体 = 整字显现（fillText，透明度/缩放淡入）；
 // 古文字（小篆，V1-C1 D-V1-01）= 受限字库整字显现（按 U+3D000+ 码位 fillText，不承诺笔顺）。
-import type { GlyphPlacement, StrokeOrderResult } from './types';
+import type { GlyphPlacement, StrokeOrderResult, StrokeGlyph } from './types';
 import type { OutlineGlyph, OutlinePoint } from './outline';
 import { hasOutline } from './outline';
 import { getSealFontStack } from '@/lib/seal';
@@ -468,4 +468,92 @@ function totalTarget(o: OutlineGlyph): number {
 /** 阻塞路径守卫：所有三路径均已可用（V1.0 起古文字不再阻塞，IM-GLYPH-001 D-V1-01）。 */
 export function isBlockedPath(_path: GlyphPlacement['path']): boolean {
   return false;
+}
+
+// ===== 统一逐笔渲染（字体无关；消费 StrokeGlyph，真·按笔顺逐笔） =====
+// 坐标：StrokeGlyph.medians 为 y-up 字体坐标（与 getKaiOutline 一致），
+// 此处自包含映射到画布（y 翻转 + 居中铺满 glyph 方块），不依赖外部变换实现，便于独立合并与测试。
+
+/**
+ * 按笔顺逐笔绘制 StrokeGlyph。progress∈[0,1] 为整字书写完成度；
+ * 第 i 笔在区间 [i/n,(i+1)/n] 内按局部进度描绘，笔锋/墨迹浓淡/速度曲线沿用 InkStyle 观感。
+ */
+export function drawStrokeGlyph(
+  ctx: CanvasRenderingContext2D,
+  glyph: GlyphPlacement,
+  sg: StrokeGlyph,
+  progress: number,
+  color: string,
+  opts: { lineWidth?: number; style?: Partial<InkStyle> } = {},
+): void {
+  const n = sg.strokes.length;
+  if (n === 0) return;
+  const st = inkStyle({ color, ...(opts.style ?? {}) });
+  const { x: bx, y: by, w: bw, h: bh } = sg.bbox;
+  const cx = bx + bw / 2;
+  const cy = by + bh / 2;
+  const scale = (glyph.size * 0.92) / Math.max(bw, bh); // 设计单位 → 画布像素
+  const gcx = glyph.x + glyph.size / 2;
+  const gcy = glyph.y + glyph.size / 2;
+  const map = (px: number, py: number): [number, number] => [
+    gcx + (px - cx) * scale,
+    gcy - (py - cy) * scale, // y-up → y-down 翻转
+  ];
+  const baseW = opts.lineWidth ?? glyph.size * 0.07;
+  const drawn = progress * n; // 已书写的"笔画量"
+  ctx.save();
+  ctx.strokeStyle = st.color;
+  ctx.lineCap = st.round ? 'round' : 'butt';
+  ctx.lineJoin = st.round ? 'round' : 'miter';
+  for (let i = 0; i < n; i++) {
+    const uRaw = i + 1 <= drawn ? 1 : i < drawn ? drawn - i : null;
+    if (uRaw === null) continue;
+    // 笔内进度先经速度曲线重映射（scribe），再用于描绘长度；笔锋/浓淡按真实位置取
+    const u = progressByStyle(uRaw, st.speedCurve);
+    const pts = sg.strokes[i].median.map(([x, y]) => map(x, y));
+    drawMedian(ctx, pts, u, baseW, st);
+  }
+  ctx.restore();
+}
+
+/** 沿中轴线绘制单笔（可在笔内局部进度 u∈[0,1] 处收尾）；笔锋/墨迹按真实位置调制。 */
+function drawMedian(
+  ctx: CanvasRenderingContext2D,
+  pts: Array<[number, number]>,
+  u: number,
+  baseW: number,
+  st: InkStyle,
+): void {
+  if (pts.length < 2) return;
+  let total = 0;
+  for (let i = 1; i < pts.length; i++) {
+    total += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+  }
+  if (total === 0) return;
+  const target = total * clamp01(u);
+  let acc = 0;
+  const prevW = ctx.lineWidth;
+  const prevA = ctx.globalAlpha;
+  ctx.strokeStyle = st.color;
+  for (let i = 1; i < pts.length; i++) {
+    const [x0, y0] = pts[i - 1];
+    const [x1, y1] = pts[i];
+    const segLen = Math.hypot(x1 - x0, y1 - y0);
+    if (segLen === 0) continue;
+    const remain = target - acc;
+    if (remain <= 0) break;
+    const local = segLen <= remain ? 1 : remain / segLen;
+    const at = (acc + (segLen * local) / 2) / total; // 段中点真实笔内进度
+    ctx.lineWidth = baseW * strokeWidthAt(at, st);
+    ctx.globalAlpha = alphaAt(at, st);
+    ctx.beginPath();
+    ctx.moveTo(x0, y0);
+    if (local >= 1) ctx.lineTo(x1, y1);
+    else ctx.lineTo(x0 + (x1 - x0) * local, y0 + (y1 - y0) * local);
+    ctx.stroke();
+    acc += segLen * local;
+    if (local < 1) break;
+  }
+  ctx.lineWidth = prevW;
+  ctx.globalAlpha = prevA;
 }

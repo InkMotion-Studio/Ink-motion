@@ -10,3 +10,6 @@ coverage
 .vscode/*
 !.vscode/extensions.json
 *.log
+
+# 楷体逐笔数据：由 scripts/copy-kai-strokes.mjs 从 npm 依赖生成（predev/prebuild 自动产出）
+public/strokes/kai/

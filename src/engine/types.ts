@@ -43,3 +43,32 @@ export interface StrokeOrderResult {
   /** 数据来源：authority=A+B 层权威内置；user=C 层用户定制（C4 接入） */
   source: 'authority' | 'user';
 }
+
+// ===== 统一笔画模型（字体无关）：KaiAdaptor 产出，drawStrokeGlyph 消费 =====
+// 任何字体、任何字最终都被归一化为该结构；渲染器只看此模型，与「数据来自哪」解耦，
+// 故「新增一种字体」= 新增一个适配器，渲染器零改动。
+
+/** 保真度等级：authored=权威逐笔几何；segmented=轮廓分割近似；orderOnly=仅笔顺名。 */
+export type StrokeFidelity = 'authored' | 'segmented' | 'orderOnly';
+
+/** 单笔：独立真实几何 + 真实笔顺中轴线。 */
+export interface StrokeSegment {
+  /** 该笔独立轮廓（SVG path，y-up 字体坐标）；当前引擎以 median 描线呈现 */
+  outline: string;
+  /** 该笔中轴线点序 [[x,y]...]，y-up；用于按真实笔顺逐笔书写 */
+  median: Array<[number, number]>;
+  /** 中轴线总长度（设计坐标） */
+  length: number;
+  /** 笔画类型编码（可选，来自笔顺表） */
+  type?: string;
+}
+
+/** 字体无关的逐笔字形模型。 */
+export interface StrokeGlyph {
+  char: string;
+  fontFamily: 'kai';
+  unitsPerEm: number;
+  bbox: { x: number; y: number; w: number; h: number };
+  fidelity: StrokeFidelity;
+  strokes: StrokeSegment[];
+}
