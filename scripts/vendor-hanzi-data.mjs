@@ -9,7 +9,10 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
-const src = join(root, 'node_modules', 'hanzi-writer-data', 'data');
+// 兼容两种包结构：hanzi-writer-data@2.x 把笔画 json 放在包根目录，
+// 旧版/某些派生包可能放在 data/ 子目录。优先用 data/，不存在则回退根目录。
+const base = join(root, 'node_modules', 'hanzi-writer-data');
+const src = existsSync(join(base, 'data')) ? join(base, 'data') : base;
 const dest = join(root, 'public', 'hanzi-data');
 
 if (!existsSync(src)) {
