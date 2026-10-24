@@ -1,0 +1,18 @@
+node_modules
+dist
+dist-ssr
+*.local
+.DS_Store
+.env
+.env.*
+!.env.example
+coverage
+.vscode/*
+!.vscode/extensions.json
+*.log
+
+# V2 重建：由 scripts/vendor-hanzi-data.mjs 从 hanzi-writer-data 生成，不纳入版本控制
+public/hanzi-data/
+
+# 本机/代理环境内的 WorkBuddy 代理内部状态，不纳入项目版本控制
+.workbuddy/

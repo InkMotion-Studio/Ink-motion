@@ -1,0 +1,753 @@
+{
+  "generatedBy": "scripts/build-fonts.py",
+  "fonts": [
+    {
+      "prefix": "lxgw-wenkai-lite",
+      "family": "LXGW WenKai",
+      "usage": "kai",
+      "source": "LXGWWenKaiLite-Regular.ttf",
+      "chunks": [
+        {
+          "file": "lxgw-wenkai-lite-latin.woff2",
+          "start": 32,
+          "end": 255,
+          "chars": 190,
+          "bytes": 12456
+        },
+        {
+          "file": "lxgw-wenkai-lite-punct.woff2",
+          "start": 8192,
+          "end": 8303,
+          "chars": 57,
+          "bytes": 2956
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjkpunct.woff2",
+          "start": 12288,
+          "end": 12351,
+          "chars": 60,
+          "bytes": 5332
+        },
+        {
+          "file": "lxgw-wenkai-lite-fullwidth.woff2",
+          "start": 65280,
+          "end": 65519,
+          "chars": 173,
+          "bytes": 14568
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjk4E00.woff2",
+          "start": 19968,
+          "end": 20967,
+          "chars": 882,
+          "bytes": 194720
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjk51E8.woff2",
+          "start": 20968,
+          "end": 21967,
+          "chars": 904,
+          "bytes": 200012
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjk55D0.woff2",
+          "start": 21968,
+          "end": 22967,
+          "chars": 884,
+          "bytes": 241692
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjk59B8.woff2",
+          "start": 22968,
+          "end": 23967,
+          "chars": 849,
+          "bytes": 230164
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjk5DA0.woff2",
+          "start": 23968,
+          "end": 24967,
+          "chars": 874,
+          "bytes": 232760
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjk6188.woff2",
+          "start": 24968,
+          "end": 25967,
+          "chars": 890,
+          "bytes": 263080
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjk6570.woff2",
+          "start": 25968,
+          "end": 26967,
+          "chars": 872,
+          "bytes": 216820
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjk6958.woff2",
+          "start": 26968,
+          "end": 27967,
+          "chars": 865,
+          "bytes": 258808
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjk6D40.woff2",
+          "start": 27968,
+          "end": 28967,
+          "chars": 870,
+          "bytes": 261176
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjk7128.woff2",
+          "start": 28968,
+          "end": 29967,
+          "chars": 854,
+          "bytes": 242036
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjk7510.woff2",
+          "start": 29968,
+          "end": 30967,
+          "chars": 852,
+          "bytes": 225040
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjk78F8.woff2",
+          "start": 30968,
+          "end": 31967,
+          "chars": 834,
+          "bytes": 256016
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjk7CE0.woff2",
+          "start": 31968,
+          "end": 32967,
+          "chars": 897,
+          "bytes": 263424
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjk80C8.woff2",
+          "start": 32968,
+          "end": 33967,
+          "chars": 887,
+          "bytes": 233464
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjk84B0.woff2",
+          "start": 33968,
+          "end": 34967,
+          "chars": 888,
+          "bytes": 295048
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjk8898.woff2",
+          "start": 34968,
+          "end": 35967,
+          "chars": 874,
+          "bytes": 258704
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjk8C80.woff2",
+          "start": 35968,
+          "end": 36967,
+          "chars": 894,
+          "bytes": 250392
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjk9068.woff2",
+          "start": 36968,
+          "end": 37967,
+          "chars": 868,
+          "bytes": 266864
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjk9450.woff2",
+          "start": 37968,
+          "end": 38967,
+          "chars": 903,
+          "bytes": 264704
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjk9838.woff2",
+          "start": 38968,
+          "end": 39967,
+          "chars": 878,
+          "bytes": 281168
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjk9C20.woff2",
+          "start": 39968,
+          "end": 40959,
+          "chars": 911,
+          "bytes": 311312
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjkA3400.woff2",
+          "start": 13312,
+          "end": 13811,
+          "chars": 86,
+          "bytes": 24692
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjkA35F4.woff2",
+          "start": 13812,
+          "end": 14311,
+          "chars": 70,
+          "bytes": 24488
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjkA37E8.woff2",
+          "start": 14312,
+          "end": 14811,
+          "chars": 60,
+          "bytes": 20156
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjkA39DC.woff2",
+          "start": 14812,
+          "end": 15311,
+          "chars": 71,
+          "bytes": 26628
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjkA3BD0.woff2",
+          "start": 15312,
+          "end": 15811,
+          "chars": 60,
+          "bytes": 23336
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjkA3DC4.woff2",
+          "start": 15812,
+          "end": 16311,
+          "chars": 50,
+          "bytes": 19504
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjkA3FB8.woff2",
+          "start": 16312,
+          "end": 16811,
+          "chars": 49,
+          "bytes": 19352
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjkA41AC.woff2",
+          "start": 16812,
+          "end": 17311,
+          "chars": 41,
+          "bytes": 17556
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjkA43A0.woff2",
+          "start": 17312,
+          "end": 17811,
+          "chars": 57,
+          "bytes": 20184
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjkA4594.woff2",
+          "start": 17812,
+          "end": 18311,
+          "chars": 49,
+          "bytes": 20476
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjkA4788.woff2",
+          "start": 18312,
+          "end": 18811,
+          "chars": 41,
+          "bytes": 16940
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjkA497C.woff2",
+          "start": 18812,
+          "end": 19311,
+          "chars": 32,
+          "bytes": 14776
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjkA4B70.woff2",
+          "start": 19312,
+          "end": 19811,
+          "chars": 65,
+          "bytes": 30000
+        },
+        {
+          "file": "lxgw-wenkai-lite-cjkA4D64.woff2",
+          "start": 19812,
+          "end": 19903,
+          "chars": 17,
+          "bytes": 6844
+        }
+      ],
+      "totalBytes": 5567648
+    },
+    {
+      "prefix": "noto-serif-sc",
+      "family": "Noto Serif SC",
+      "usage": "song",
+      "source": "NotoSerifSC-Regular.ttf",
+      "chunks": [
+        {
+          "file": "noto-serif-sc-latin.woff2",
+          "start": 32,
+          "end": 255,
+          "chars": 191,
+          "bytes": 11780
+        },
+        {
+          "file": "noto-serif-sc-punct.woff2",
+          "start": 8192,
+          "end": 8303,
+          "chars": 34,
+          "bytes": 2284
+        },
+        {
+          "file": "noto-serif-sc-cjkpunct.woff2",
+          "start": 12288,
+          "end": 12351,
+          "chars": 64,
+          "bytes": 4852
+        },
+        {
+          "file": "noto-serif-sc-fullwidth.woff2",
+          "start": 65280,
+          "end": 65519,
+          "chars": 224,
+          "bytes": 22444
+        },
+        {
+          "file": "noto-serif-sc-cjk4E00.woff2",
+          "start": 19968,
+          "end": 20967,
+          "chars": 1000,
+          "bytes": 170276
+        },
+        {
+          "file": "noto-serif-sc-cjk51E8.woff2",
+          "start": 20968,
+          "end": 21967,
+          "chars": 1000,
+          "bytes": 173612
+        },
+        {
+          "file": "noto-serif-sc-cjk55D0.woff2",
+          "start": 21968,
+          "end": 22967,
+          "chars": 1000,
+          "bytes": 205736
+        },
+        {
+          "file": "noto-serif-sc-cjk59B8.woff2",
+          "start": 22968,
+          "end": 23967,
+          "chars": 1000,
+          "bytes": 211520
+        },
+        {
+          "file": "noto-serif-sc-cjk5DA0.woff2",
+          "start": 23968,
+          "end": 24967,
+          "chars": 1000,
+          "bytes": 202052
+        },
+        {
+          "file": "noto-serif-sc-cjk6188.woff2",
+          "start": 24968,
+          "end": 25967,
+          "chars": 1000,
+          "bytes": 218412
+        },
+        {
+          "file": "noto-serif-sc-cjk6570.woff2",
+          "start": 25968,
+          "end": 26967,
+          "chars": 1000,
+          "bytes": 186280
+        },
+        {
+          "file": "noto-serif-sc-cjk6958.woff2",
+          "start": 26968,
+          "end": 27967,
+          "chars": 1000,
+          "bytes": 230428
+        },
+        {
+          "file": "noto-serif-sc-cjk6D40.woff2",
+          "start": 27968,
+          "end": 28967,
+          "chars": 1000,
+          "bytes": 244872
+        },
+        {
+          "file": "noto-serif-sc-cjk7128.woff2",
+          "start": 28968,
+          "end": 29967,
+          "chars": 1000,
+          "bytes": 224120
+        },
+        {
+          "file": "noto-serif-sc-cjk7510.woff2",
+          "start": 29968,
+          "end": 30967,
+          "chars": 1000,
+          "bytes": 200924
+        },
+        {
+          "file": "noto-serif-sc-cjk78F8.woff2",
+          "start": 30968,
+          "end": 31967,
+          "chars": 1000,
+          "bytes": 232700
+        },
+        {
+          "file": "noto-serif-sc-cjk7CE0.woff2",
+          "start": 31968,
+          "end": 32967,
+          "chars": 1000,
+          "bytes": 253388
+        },
+        {
+          "file": "noto-serif-sc-cjk80C8.woff2",
+          "start": 32968,
+          "end": 33967,
+          "chars": 1000,
+          "bytes": 197280
+        },
+        {
+          "file": "noto-serif-sc-cjk84B0.woff2",
+          "start": 33968,
+          "end": 34967,
+          "chars": 1000,
+          "bytes": 247820
+        },
+        {
+          "file": "noto-serif-sc-cjk8898.woff2",
+          "start": 34968,
+          "end": 35967,
+          "chars": 1000,
+          "bytes": 218692
+        },
+        {
+          "file": "noto-serif-sc-cjk8C80.woff2",
+          "start": 35968,
+          "end": 36967,
+          "chars": 1000,
+          "bytes": 210676
+        },
+        {
+          "file": "noto-serif-sc-cjk9068.woff2",
+          "start": 36968,
+          "end": 37967,
+          "chars": 1000,
+          "bytes": 234148
+        },
+        {
+          "file": "noto-serif-sc-cjk9450.woff2",
+          "start": 37968,
+          "end": 38967,
+          "chars": 1000,
+          "bytes": 225396
+        },
+        {
+          "file": "noto-serif-sc-cjk9838.woff2",
+          "start": 38968,
+          "end": 39967,
+          "chars": 1000,
+          "bytes": 262080
+        },
+        {
+          "file": "noto-serif-sc-cjk9C20.woff2",
+          "start": 39968,
+          "end": 40959,
+          "chars": 992,
+          "bytes": 270448
+        },
+        {
+          "file": "noto-serif-sc-cjkA3400.woff2",
+          "start": 13312,
+          "end": 13811,
+          "chars": 500,
+          "bytes": 100280
+        },
+        {
+          "file": "noto-serif-sc-cjkA35F4.woff2",
+          "start": 13812,
+          "end": 14311,
+          "chars": 500,
+          "bytes": 108620
+        },
+        {
+          "file": "noto-serif-sc-cjkA37E8.woff2",
+          "start": 14312,
+          "end": 14811,
+          "chars": 500,
+          "bytes": 107040
+        },
+        {
+          "file": "noto-serif-sc-cjkA39DC.woff2",
+          "start": 14812,
+          "end": 15311,
+          "chars": 500,
+          "bytes": 108340
+        },
+        {
+          "file": "noto-serif-sc-cjkA3BD0.woff2",
+          "start": 15312,
+          "end": 15811,
+          "chars": 500,
+          "bytes": 130256
+        },
+        {
+          "file": "noto-serif-sc-cjkA3DC4.woff2",
+          "start": 15812,
+          "end": 16311,
+          "chars": 500,
+          "bytes": 109752
+        },
+        {
+          "file": "noto-serif-sc-cjkA3FB8.woff2",
+          "start": 16312,
+          "end": 16811,
+          "chars": 500,
+          "bytes": 108044
+        },
+        {
+          "file": "noto-serif-sc-cjkA41AC.woff2",
+          "start": 16812,
+          "end": 17311,
+          "chars": 500,
+          "bytes": 124124
+        },
+        {
+          "file": "noto-serif-sc-cjkA43A0.woff2",
+          "start": 17312,
+          "end": 17811,
+          "chars": 500,
+          "bytes": 110852
+        },
+        {
+          "file": "noto-serif-sc-cjkA4594.woff2",
+          "start": 17812,
+          "end": 18311,
+          "chars": 500,
+          "bytes": 119204
+        },
+        {
+          "file": "noto-serif-sc-cjkA4788.woff2",
+          "start": 18312,
+          "end": 18811,
+          "chars": 500,
+          "bytes": 115404
+        },
+        {
+          "file": "noto-serif-sc-cjkA497C.woff2",
+          "start": 18812,
+          "end": 19311,
+          "chars": 500,
+          "bytes": 117948
+        },
+        {
+          "file": "noto-serif-sc-cjkA4B70.woff2",
+          "start": 19312,
+          "end": 19811,
+          "chars": 500,
+          "bytes": 135408
+        },
+        {
+          "file": "noto-serif-sc-cjkA4D64.woff2",
+          "start": 19812,
+          "end": 19903,
+          "chars": 92,
+          "bytes": 28392
+        }
+      ],
+      "totalBytes": 6185884
+    },
+    {
+      "prefix": "ma-shan-zheng",
+      "family": "Ma Shan Zheng",
+      "usage": "brush",
+      "source": "MaShanZheng-Regular.ttf",
+      "chunks": [
+        {
+          "file": "ma-shan-zheng-latin.woff2",
+          "start": 32,
+          "end": 255,
+          "chars": 109,
+          "bytes": 11292
+        },
+        {
+          "file": "ma-shan-zheng-punct.woff2",
+          "start": 8192,
+          "end": 8303,
+          "chars": 10,
+          "bytes": 908
+        },
+        {
+          "file": "ma-shan-zheng-cjkpunct.woff2",
+          "start": 12288,
+          "end": 12351,
+          "chars": 17,
+          "bytes": 1920
+        },
+        {
+          "file": "ma-shan-zheng-fullwidth.woff2",
+          "start": 65280,
+          "end": 65519,
+          "chars": 96,
+          "bytes": 11424
+        },
+        {
+          "file": "ma-shan-zheng-cjk4E00.woff2",
+          "start": 19968,
+          "end": 20967,
+          "chars": 389,
+          "bytes": 148680
+        },
+        {
+          "file": "ma-shan-zheng-cjk51E8.woff2",
+          "start": 20968,
+          "end": 21967,
+          "chars": 422,
+          "bytes": 170760
+        },
+        {
+          "file": "ma-shan-zheng-cjk55D0.woff2",
+          "start": 21968,
+          "end": 22967,
+          "chars": 278,
+          "bytes": 133052
+        },
+        {
+          "file": "ma-shan-zheng-cjk59B8.woff2",
+          "start": 22968,
+          "end": 23967,
+          "chars": 283,
+          "bytes": 133352
+        },
+        {
+          "file": "ma-shan-zheng-cjk5DA0.woff2",
+          "start": 23968,
+          "end": 24967,
+          "chars": 331,
+          "bytes": 150068
+        },
+        {
+          "file": "ma-shan-zheng-cjk6188.woff2",
+          "start": 24968,
+          "end": 25967,
+          "chars": 326,
+          "bytes": 168560
+        },
+        {
+          "file": "ma-shan-zheng-cjk6570.woff2",
+          "start": 25968,
+          "end": 26967,
+          "chars": 324,
+          "bytes": 148180
+        },
+        {
+          "file": "ma-shan-zheng-cjk6958.woff2",
+          "start": 26968,
+          "end": 27967,
+          "chars": 264,
+          "bytes": 123676
+        },
+        {
+          "file": "ma-shan-zheng-cjk6D40.woff2",
+          "start": 27968,
+          "end": 28967,
+          "chars": 273,
+          "bytes": 139912
+        },
+        {
+          "file": "ma-shan-zheng-cjk7128.woff2",
+          "start": 28968,
+          "end": 29967,
+          "chars": 225,
+          "bytes": 116280
+        },
+        {
+          "file": "ma-shan-zheng-cjk7510.woff2",
+          "start": 29968,
+          "end": 30967,
+          "chars": 302,
+          "bytes": 152800
+        },
+        {
+          "file": "ma-shan-zheng-cjk78F8.woff2",
+          "start": 30968,
+          "end": 31967,
+          "chars": 234,
+          "bytes": 121408
+        },
+        {
+          "file": "ma-shan-zheng-cjk7CE0.woff2",
+          "start": 31968,
+          "end": 32967,
+          "chars": 263,
+          "bytes": 133920
+        },
+        {
+          "file": "ma-shan-zheng-cjk80C8.woff2",
+          "start": 32968,
+          "end": 33967,
+          "chars": 336,
+          "bytes": 159752
+        },
+        {
+          "file": "ma-shan-zheng-cjk84B0.woff2",
+          "start": 33968,
+          "end": 34967,
+          "chars": 223,
+          "bytes": 124808
+        },
+        {
+          "file": "ma-shan-zheng-cjk8898.woff2",
+          "start": 34968,
+          "end": 35967,
+          "chars": 210,
+          "bytes": 103540
+        },
+        {
+          "file": "ma-shan-zheng-cjk8C80.woff2",
+          "start": 35968,
+          "end": 36967,
+          "chars": 282,
+          "bytes": 145052
+        },
+        {
+          "file": "ma-shan-zheng-cjk9068.woff2",
+          "start": 36968,
+          "end": 37967,
+          "chars": 121,
+          "bytes": 66988
+        },
+        {
+          "file": "ma-shan-zheng-cjk9450.woff2",
+          "start": 37968,
+          "end": 38967,
+          "chars": 322,
+          "bytes": 169816
+        },
+        {
+          "file": "ma-shan-zheng-cjk9838.woff2",
+          "start": 38968,
+          "end": 39967,
+          "chars": 168,
+          "bytes": 93668
+        },
+        {
+          "file": "ma-shan-zheng-cjk9C20.woff2",
+          "start": 39968,
+          "end": 40959,
+          "chars": 141,
+          "bytes": 85076
+        }
+      ],
+      "totalBytes": 2814892
+    }
+  ]
+}

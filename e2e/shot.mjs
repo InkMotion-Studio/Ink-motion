@@ -1,0 +1,11 @@
+import { chromium } from 'playwright';
+const EXE=process.env.CHROME_EXE;
+const b=await chromium.launch({executablePath:EXE,args:['--no-sandbox']});
+const p=await b.newPage({viewport:{width:1366,height:900}});
+await p.goto('http://localhost:4173/',{waitUntil:'networkidle'});
+await p.waitForTimeout(500);
+await p.click('.im-grid-3 >> nth=0 >> text=用此模板');
+await p.waitForTimeout(3000);
+await p.screenshot({path:'/tmp/c5-paper.png'});
+console.log('paper shot done');
+await b.close();

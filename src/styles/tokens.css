@@ -1,0 +1,124 @@
+/*
+ * IM-UI-001 §5 设计 Token（MVP 仅浅色主题）
+ * 古典中文美学：墨、宣纸、竹、朱砂、金。
+ * 以 CSS 自定义属性暴露，供组件与引擎消费。
+ */
+
+:root {
+  /* ===== 语义色板（浅色） ===== */
+  --im-color-bg: #f4ecd8; /* 宣纸底 */
+  --im-color-bg-elevated: #fbf5e6; /* 浮起表面 */
+  --im-color-surface: #fffdf7; /* 卡片/面板 */
+  --im-color-surface-hover: #f0e6cf;
+
+  --im-color-ink: #1c1a17; /* 墨（主文字） */
+  --im-color-ink-soft: #4a4540; /* 次级文字 */
+  --im-color-ink-faint: #6f675c; /* 辅助/占位（V1-C4：由 #8a8175 提深以满足 AA 4.5:1） */
+
+  --im-color-line: #d8c9a8; /* 分隔线/边框 */
+  --im-color-line-strong: #b9a47a;
+
+  --im-color-paper: #f4ecd8;
+  --im-color-paper-deep: #e8dcc0;
+  --im-color-bamboo: #c9b083;
+  --im-color-bamboo-deep: #a8884f;
+
+  --im-color-vermilion: #9e2b25; /* 朱砂（强调/印章/危险） */
+  --im-color-on-vermilion: #ffffff; /* 朱砂底之上的前景色（按钮文字） */
+  --im-color-vermilion-soft: #c75b50;
+  --im-color-gold: #b8860b; /* 金（点缀/聚焦） */
+  --im-color-gold-soft: #d4af37;
+
+  --im-color-success: #3f7d4e;
+  --im-color-warning: #7a5c07; /* 深金褐：浅色底上对比度 ≥ 4.5:1（A11Y 修复，V2-C2） */
+  --im-color-danger: #9e2b25;
+
+  /* 载体预览用（引擎消费） */
+  --im-carrier-paper: #f4ecd8;
+  --im-carrier-bamboo: #c9b083;
+  --im-ink-rgb: 28, 26, 23;
+
+  /* ===== 字体 ===== */
+  --im-font-serif: 'Source Han Serif SC', 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
+  --im-font-kai: 'AR PL UKai', 'KaiTi', 'STKaiti', serif; /* 楷体（Arphic UKai / 系统楷） */
+  --im-font-sans: 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --im-font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+
+  --im-fs-xs: 12px;
+  --im-fs-sm: 13px;
+  --im-fs-md: 15px;
+  --im-fs-lg: 18px;
+  --im-fs-xl: 22px;
+  --im-fs-2xl: 28px;
+  --im-fs-3xl: 36px;
+
+  --im-lh-tight: 1.25;
+  --im-lh-base: 1.6;
+
+  /* ===== 间距（4px 基准） ===== */
+  --im-space-1: 4px;
+  --im-space-2: 8px;
+  --im-space-3: 12px;
+  --im-space-4: 16px;
+  --im-space-5: 24px;
+  --im-space-6: 32px;
+  --im-space-7: 48px;
+  --im-space-8: 64px;
+
+  /* ===== 圆角 ===== */
+  --im-radius-sm: 4px;
+  --im-radius-md: 8px;
+  --im-radius-lg: 14px;
+  --im-radius-pill: 999px;
+
+  /* ===== 阴影 ===== */
+  --im-shadow-sm: 0 1px 2px rgba(28, 26, 23, 0.08);
+  --im-shadow-md: 0 4px 12px rgba(28, 26, 23, 0.12);
+  --im-shadow-lg: 0 12px 32px rgba(28, 26, 23, 0.18);
+
+  /* ===== 层级 ===== */
+  --im-z-base: 1;
+  --im-z-sticky: 100;
+  --im-z-modal: 1000;
+  --im-z-toast: 2000;
+
+  /* ===== 动效 ===== */
+  --im-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --im-dur-fast: 120ms;
+  --im-dur-base: 220ms;
+  --im-dur-slow: 420ms;
+
+  /* ===== 布局 ===== */
+  --im-header-h: 56px;
+  --im-nav-w: 220px;
+  --im-content-max: 1200px;
+}
+
+/*
+ * 深色主题（V1.0，N3.x 之后；MVP 不启用，预留变量）
+ */
+:root[data-theme='dark'] {
+  --im-color-bg: #1a1714;
+  --im-color-bg-elevated: #221d18;
+  --im-color-surface: #2b241d;
+  --im-color-surface-hover: #352c22;
+  --im-color-ink: #f0e6cf;
+  --im-color-ink-soft: #c9bda3;
+  --im-color-ink-faint: #a89e8c; /* V1-C4：深色下提亮以满足 AA 4.5:1 */
+  --im-color-line: #4a4034;
+  --im-color-line-strong: #6b5d47;
+  /* 载体在深色下降低明度以避免刺眼，保持材质语义 */
+  --im-color-paper: #2b241d;
+  --im-color-paper-deep: #221d18;
+  --im-color-bamboo: #5a4a30;
+  --im-color-bamboo-deep: #443620;
+  /* 强调色在深色下提亮以满足对比度 */
+  --im-color-vermilion: #e07a6f;
+  --im-color-vermilion-soft: #c75b50;
+  --im-color-on-vermilion: #1a1714; /* 深色下朱砂变亮，前景改用深墨以满足 AA 4.5:1 */
+  --im-color-gold: #e6c349;
+  --im-color-gold-soft: #d4af37;
+  --im-color-success: #7bbf8a;
+  --im-color-warning: #e6c349;
+  --im-color-danger: #e07a6f;
+}
