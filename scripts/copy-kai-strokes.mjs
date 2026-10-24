@@ -14,9 +14,14 @@ async function main() {
   let files;
   try {
     files = await fs.readdir(srcDir);
-  } catch (e) {
-    console.error('[copy-kai-strokes] 未找到 hanzi-writer-data，请先执行 `npm install`。', e);
-    process.exit(1);
+  } catch {
+    // 找不到依赖时容错退出：绝不阻断 dev / build。
+    // 运行时 KaiAdaptor 的 fetch 会 404 → 返回 null → 回落轮廓方案，项目仍可正常启动。
+    console.warn(
+      '[copy-kai-strokes] 未找到 node_modules/hanzi-writer-data，已跳过复制。\n' +
+      '                  kai 将临时回落「轮廓近似」方案；请先 `npm install` 以启用楷体真笔顺。',
+    );
+    process.exit(0);
   }
   await fs.mkdir(outDir, { recursive: true });
   let count = 0;
